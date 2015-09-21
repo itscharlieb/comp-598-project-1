@@ -47,12 +47,12 @@ def train(trainFunc, errorFunc, trainingData, testData):
 	return weights, error
 
 
-
 '''
 '''
 def multiTrain(trainFunc, errorFunc, partitions):
 	results = []
 	for trainingData, testData in partitions:
 		results.append(train(trainFunc, errorFunc, trainingData, testData))
+	return results
 
 
