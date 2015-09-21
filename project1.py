@@ -83,35 +83,66 @@ Attribute Information:
 """
 import csv
 import numpy as np
-
-path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
-
-num_features = 61
-x = []
-y = []
+import random
 
 '''TODO: split training set and test set!!
 train = []
 test = []
 '''
 
-with open(path, 'rb') as datafile:
-    reader = csv.reader(datafile)
-    example = 0
-    for row in reader:      # go through each line
-        if example > 0:     # skip the first line (title of each feature)
+"""
+function with params: data, number of sets, percentage for training
+returns: list (size=number of sets) of (training,test) tuples.
+"""
+def splitData(data, training_percentage=0.5):
+    training = []
+    test = []
 
-            if len(row) != num_features: # check that nuber of features is correct
-                print "ERROR: number of features for this row is not %d" % num_features
-                print row
-                continue
+    training_size = len(data) * training_percentage
+    random_examples = random.sample(range(len(data))[1:], training_size)
+    for i in len(data):
+        if i in random_examples:
+            training.append(data[i])
+        else:
+            test.append(data[i])
 
-            url = row[0]                                # URL is at 1st column
-            timedelta = float(row[1])                   # time delta is at 2nd column
-            x.append(map(float,row[2:num_features-1]))  # features are from 3rd column to 60th column
-            y.append([float(row[num_features-1])])      # shares is at 61st column
+    return training, test
 
-        example=example+1   # increment example counter
+"""
+Asume a title line at the begining of the file.
+"""
+def readData(path, num_features):
+    x = []
+    y = []
+    
+    with open(path, 'rb') as datafile:
+        reader = csv.reader(datafile)
+        example = 0
+        for row in reader:      # go through each line
+            if example > 0:     # skip the first line (title of each feature)
+
+                if len(row) != num_features: # check that nuber of features is correct
+                    print "ERROR: number of features for this row is not %d" % num_features
+                    print row
+                    continue
+
+                url = row[0]                              # URL is at 1st column
+                timedelta = float(row[1])                 # time delta is at 2nd column
+                x.append(map(float,row[2:num_features-1]))  # features are from 3rd column to 61st column
+                y.append([float(row[num_features-1])])      # shares is at 61st column
+
+            example=example+1   # increment example counter
+
+    return x,y
+
+
+path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
+num_features = 61
+num_examples = 39644
+
+x,y = readData(path, num_features)
+
+#train, test = splitData(x , 0.7)
 
 X = np.matrix(x)
 Y = np.matrix(y)
