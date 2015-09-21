@@ -4,7 +4,7 @@
 ### Authors:                                ###
 ###  + Nicolas Angelard-Gontier - 260532513 ###
 ###  + Genevieve Fried - #########          ###
-###  + Charlie Bloomfield - #########       ###
+###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
 import sys
@@ -12,15 +12,19 @@ import numpy as np
 import random
 
 """
-function with params: data, number of sets, percentage for training
-returns: list (size=number of sets) of (training,test) tuples.
+Split data into 2.
+@param data - an array of tuples of the form (array of features, array of target).
+@param p - the percentage of the data that will be used to train our learner.
+@returns - two 2D arrays of tuples of the form (array of features, array of target).
+    One array is for training, the other for testing.
 """
-def partition(data, training_percentage = 0.5):
-    training = []
-    test = []
+def partition(data, p = 0.5):
+    training = [] # array of tuples of the form (array of features, array of target).
+    test = [] # array of tuples of the form (array of features, array of target).
 
-    training_size = len(data) * training_percentage
-    random_examples = random.sample(data, int(training_size))
+    training_size = len(data) * p
+    # create an array of size 'training_size' with random indices from 1 to len(data)-1
+    random_examples = random.sample(range(len(data)), int(training_size))
     for i in range(len(data)):
         if i in random_examples:
             training.append(data[i])
@@ -31,17 +35,23 @@ def partition(data, training_percentage = 0.5):
 
 
 """
-partitions data into r sets of size p partitions
+Partitions data into p/100 of training, r times.
+@param data - an array of tuples of the form (array of features, array of target).
+@param p - the percentage of the data that will be used to train our learner.
+@param r - the number of time we split the data.
+@returns - an array of arrays of the form: [training, testing].
+    With training and testing being arrays of tuples of the form (array of features, array of target).
 """
 def multiParition(data, p = 0.5, r = 10):
 	partitions = []
 	for _ in range(r):
-		partitions.append(partition(data, p))
+        training, testing = partition(data, p)
+		partitions.append([training, testing])
 	return partitions
 
 
 """
-returns a training and error function pair on a partitioned set of data
+Returns a training and error function pair on a partitioned set of data
 """
 def train(trainFunc, trainingData, testData):
 	weights = trainFunc(trainingData[0], trainingData[1])

@@ -7,7 +7,6 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
-import sys
 import numpy as np
 
 """

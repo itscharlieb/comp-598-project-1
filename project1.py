@@ -4,7 +4,7 @@
 ### Authors:                                ###
 ###  + Nicolas Angelard-Gontier - 260532513 ###
 ###  + Genevieve Fried - #########          ###
-###  + Charlie Bloomfield - #########       ###
+###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
 """
@@ -85,22 +85,20 @@ import csv
 import numpy as np
 import random
 
-'''TODO: split training set and test set!!
-train = []
-test = []
-'''
-
 """
-function with params: data, number of sets, percentage for training
-returns: list (size=number of sets) of (training,test) tuples.
+Split data into 2.
+@param data_length - the number of examples in the dataset.
+@param training_percentage - the percentage of the data that will be used to train our learner.
+@returns - two 2D array: the first one being training data, the other being test data.
 """
-def splitData(data, training_percentage=0.5):
+def splitData(data_length, training_percentage=0.5):
     training = []
     test = []
 
-    training_size = len(data) * training_percentage
-    random_examples = random.sample(range(len(data))[1:], training_size)
-    for i in len(data):
+    training_size = data_length * training_percentage
+    # create an array of size 'training_size' with random indices from 1 to len(data)-1
+    random_examples = random.sample(range(data_length)[1:], training_size)
+    for i in range(data_length)[1:]:
         if i in random_examples:
             training.append(data[i])
         else:
