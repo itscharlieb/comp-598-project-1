@@ -28,6 +28,7 @@ def partition(data, training_percentage=0.5):
 
 
 '''
+partitions data into r sets of size p partitions
 '''
 def multiParition(data, p = 0.5, r = 10):
 	partitions = []
@@ -37,6 +38,7 @@ def multiParition(data, p = 0.5, r = 10):
 
 
 '''
+returns a training and error function pair on a partitioned set of data
 '''
 def train(trainFunc, errorFunc, trainingData, testData):
 	weights = trainFunc(trainingData)
@@ -48,6 +50,7 @@ def train(trainFunc, errorFunc, trainingData, testData):
 
 
 '''
+
 '''
 def multiTrain(trainFunc, errorFunc, partitions):
 	results = []

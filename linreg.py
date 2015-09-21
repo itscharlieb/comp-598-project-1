@@ -7,6 +7,9 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
+import sys,
+import numpy
+
 '''
 returns the set of weights that define the ols line estimate over the parameter data
 '''
