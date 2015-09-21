@@ -7,10 +7,19 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
+'''
+returns the set of weights that define the ols line estimate over the parameter data
+'''
 def ols(data):
 
 
+'''
+returns the set of weights that define the gradient descent estimate over the parameter data
+'''
 def gradientDescent(data):
 
 
-def lse(weights, points):
+'''
+returns the squared error of points over the function defined by weights
+'''
+def squaredError(weights, points):
