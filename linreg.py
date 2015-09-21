@@ -14,7 +14,7 @@ import numpy as np
 returns the set of weights that define the ols line estimate over the parameter data
 data is a list of [feature, val] lists
 '''
-def ols(data):
+def ols(features, dependents):
 	product1 = X.transpose() * X
 	product2 = X.transpose() * Y
 	W = product1.getI() * product2
@@ -23,7 +23,7 @@ def ols(data):
 '''
 returns the set of weights that define the gradient descent estimate over the parameter data
 '''
-def gradientDescent(data):
+def gradientDescent(features, dependents):
 
 
 '''

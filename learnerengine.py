@@ -12,7 +12,7 @@
 function with params: data, number of sets, percentage for training
 returns: list (size=number of sets) of (training,test) tuples.
 '''
-def partition(data, training_percentage=0.5):
+def partition(data, training_percentage = 0.5):
     training = []
     test = []
 
@@ -50,7 +50,6 @@ def train(trainFunc, errorFunc, trainingData, testData):
 
 
 '''
-
 '''
 def multiTrain(trainFunc, errorFunc, partitions):
 	results = []
