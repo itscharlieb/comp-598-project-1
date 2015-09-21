@@ -8,12 +8,16 @@
 ###############################################
 
 import sys
-import numpy
+import numpy as np
 
 '''
 returns the set of weights that define the ols line estimate over the parameter data
+data is a list of [feature, val] lists
 '''
 def ols(data):
+	product1 = X.transpose() * X
+	product2 = X.transpose() * Y
+	W = product1.getI() * product2
 
 
 '''
