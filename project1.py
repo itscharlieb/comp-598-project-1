@@ -84,6 +84,11 @@ Attribute Information:
 
 from learner import *
 
+## ols
+## gradient descent
+
+weightSoln = ols
+
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
 data = readData(path)
 print "length of data: %d" % len(data)
@@ -94,7 +99,7 @@ print"1.0 as training:"
 training_data, testing_data = partition(data, 1)
 print "length of training: %d" % len(training_data)
 print "length of testing: %d" % len(testing_data)
-W = train(ols, training_data)
+W = train(weightSoln, training_data)
 print "W ="
 print W
 print W.shape
@@ -104,7 +109,7 @@ print"0.75 as training, 0.25 as test:"
 training_data, testing_data = partition(data, 0.75)
 print "length of training: %d" % len(training_data)
 print "length of testing: %d" % len(testing_data)
-W = train(ols, training_data)
+W = train(weightSoln, training_data)
 print "W ="
 print W
 print W.shape
@@ -116,9 +121,11 @@ print"0.5 as training, 0.5 as test:"
 training_data, testing_data = partition(data, 0.50)
 print "length of training: %d" % len(training_data)
 print "length of testing: %d" % len(testing_data)
-W = train(ols, training_data)
+W = train(weightSoln, training_data)
 print "W ="
 print W
 print W.shape
 w = W.tolist()
 #TODO: check error on test.
+
+

@@ -7,9 +7,8 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
-import csv
+import csv, random
 import numpy as np
-import random
 
 """
 Read the data from a CSV file and put it all in an array.
@@ -131,16 +130,23 @@ Calculate the Ordinary Least Squares coefficients for some features and their ta
 @param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
 @return - the coefficient matrix corresponding to the OLS line estimate.
 """
-def ols(trainingData):
 
+def generateMatrixes(trainingData):
     features = []
     targets = []
     for example in trainingData:
         features.append(example[2]) #features are the 3rd element of an example tuple.
         targets.append(example[3]) #the target is the 4th element of an example tuple.
 
-    X = np.matrix(features)
-    Y = np.matrix(targets)
+    X = np.matrix(features, dtype = np.float64)
+    Y = np.matrix(targets, dtype = np.float64)
+    
+    return X,Y
+
+def ols(trainingData):
+
+    X,Y = generateMatrixes(trainingData)
+
     # product1 = (X^t * X)^-1
     product1 = (X.transpose() * X)
     # product2 = (X^t * Y)
@@ -152,8 +158,41 @@ def ols(trainingData):
 """
 returns the set of weights that define the gradient descent estimate over the parameter data
 """
-def gradientDescent(features, dependents):
-    pass
+
+def ErrW(wVec, xVec, yVec):
+
+    p1 = xVec.transpose() * xVec
+    p2 = p1 * wVec.transpose()
+    p3 = xVec.transpose() * yVec
+    p4 = p2-p3
+    return np.multiply(2.0, p4)
+
+    #TOD0: Look into wolfe conditions or robin monroe's sequence for alpha
+def gradientDescent(trainingData):
+
+    ## constant values
+    alpha = random.random()  #to be replaced later with a more sophisticated alg
+    epsilon = 0.0001    
+    X,Y = generateMatrixes(trainingData)
+    lenM = X.shape[1]
+
+   # initial construction of gradient descent alg
+    tmp = [random.random() for x in range(lenM)]
+    wCrt = np.matrix(tmp)
+    aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
+    wNext = wCrt - aErr
+
+    ## gradient descent
+    while( np.linalg.norm(wNext - wCrt) > epsilon):
+        print np.linalg.norm(wNext - wCrt)
+        wCrt = wNext
+        aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
+        wNext = wCrt - aErr
+        
+
+        if np.linalg.norm(wCrt) == np.linalg.norm(wNext):
+            return wNext
+    return wNext    
 
 """
 returns the squared error of points over the function defined by weights
