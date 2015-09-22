@@ -81,90 +81,14 @@ Attribute Information:
     60. shares:                        Number of shares (target)
 
 """
-import csv
-import numpy as np
-import random
 
-"""
-Split data into 2.
-@param data_length - the number of examples in the dataset.
-@param training_percentage - the percentage of the data that will be used to train our learner.
-@returns - two 2D array: the first one being training data, the other being test data.
-"""
-def splitData(data_length, training_percentage=0.5):
-    training = []
-    test = []
-
-    training_size = data_length * training_percentage
-    # create an array of size 'training_size' with random indices from 1 to len(data)-1
-    random_examples = random.sample(range(data_length)[1:], training_size)
-    for i in range(data_length)[1:]:
-        if i in random_examples:
-            training.append(data[i])
-        else:
-            test.append(data[i])
-
-    return training, test
-
-"""
-Asume a title line at the begining of the file.
-"""
-def readData(path, num_features):
-    x = []
-    y = []
-    
-    with open(path, 'rb') as datafile:
-        reader = csv.reader(datafile)
-        example = 0
-        for row in reader:      # go through each line
-            if example > 0:     # skip the first line (title of each feature)
-
-                if len(row) != num_features: # check that nuber of features is correct
-                    print "ERROR: number of features for this row is not %d" % num_features
-                    print row
-                    continue
-
-                url = row[0]                              # URL is at 1st column
-                timedelta = float(row[1])                 # time delta is at 2nd column
-                x.append(map(float,row[2:num_features-1]))  # features are from 3rd column to 61st column
-                y.append([float(row[num_features-1])])      # shares is at 61st column
-
-            example=example+1   # increment example counter
-
-    return x,y
-
+import learner
 
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
-num_features = 61
-num_examples = 39644
+data = learner.readData(path)
 
-x,y = readData(path, num_features)
-
-#train, test = splitData(x , 0.7)
-
-X = np.matrix(x)
-Y = np.matrix(y)
-
-print "X = "
-print X
-print ""
-print "Y = "
-print Y
-print ""
-
-# product1 = (X^t * X)^-1
-product1 = (X.transpose() * X)
-print "X^t * X ="
-print product1
-
-# product2 = (X^t * Y)
-product2 = X.transpose() * Y
-print "X^t * Y ="
-print product2
-
-W = product1.getI() * product2
-print "W ="
-print W
-print W.shape
-
+# split data into 2 with 70% being training data.
+training_data, testing_data = learner.partition(data, 0.7)
+#TODO: learn on training.
+#TODO: check error on test.
 
