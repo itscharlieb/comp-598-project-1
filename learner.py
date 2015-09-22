@@ -47,7 +47,6 @@ def readData(path):
 
             example=example+1 # increment example counter
 
-    print "length of data: %d" % len(data)
     return data
 
 
@@ -71,8 +70,6 @@ def partition(data, p = 0.5):
         else:
             testing.append(data[i])
 
-    print "length of training: %d" % len(training)
-    print "length of testing: %d" % len(testing)
     return training, testing
 
 
@@ -81,7 +78,7 @@ Partitions data into p/100 of training data and 1-(p/100) testing data, r times.
 @param data - an array of tuples of the form (url, timedelta, array of features, array of target).
 @param p - the percentage of the data that will be used to train our learner. (default is 50%).
 @param r - the number of time we split the data. (default is 10 times).
-@returns - an array of arrays of the form: [training, testing],
+@return - an array of arrays of the form: [training, testing],
            with training and testing being arrays of tuples of the form (url, timedelta, array of features, array of target).
 example of partitions: [
     [
@@ -110,60 +107,47 @@ def multiPartition(data, p = 0.5, r = 10):
 
 
 """
-Returns a training and error function pair on a partitioned set of data
+Train some given learner with some given data.
+@param trainFunc - the learner that we want to use.
+@param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - whatever the learner returns.
 """
-def train(trainFunc, trainingData, testData):
-	weights = trainFunc(trainingData[0], trainingData[1])
-
-	#errorFunc may need different parameters. Specifically, it probably needs a function
-	#and not just a set of weights.
-	#error = errorFunc(weights, testData)
-	return weights
-
+def train(trainFunc, trainingData):
+	return trainFunc(trainingData)
 
 """
 """
 def multiTrain(trainFunc, partitions):
-	results = []
-	for trainingData, testData in partitions:
-		results.append(train(trainFunc, trainingData, testData))
-	return results
+    results = []
+    for p in partitions:
+        trainingData = p[0]
+        testingData = p[1]
+        results.append(train(trainFunc, trainingData))
+    return results
 
 
 """
-returns the set of weights that define the ols line estimate over the parameter data
-data is a list of [feature, val] lists
+Calculate the Ordinary Least Squares coefficients for some features and their targets.
+@param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - the coefficient matrix corresponding to the OLS line estimate.
 """
-def ols(features, dependents):
-    product1 = X.transpose() * X
-    product2 = X.transpose() * Y
-    return product1.getI() * product2
-"""
-    X = np.matrix(x)
-    Y = np.matrix(y)
+def ols(trainingData):
 
-    print "X = "
-    print X
-    print ""
-    print "Y = "
-    print Y
-    print ""
+    features = []
+    targets = []
+    for example in trainingData:
+        features.append(example[2]) #features are the 3rd element of an example tuple.
+        targets.append(example[3]) #the target is the 4th element of an example tuple.
 
+    X = np.matrix(features)
+    Y = np.matrix(targets)
     # product1 = (X^t * X)^-1
     product1 = (X.transpose() * X)
-    print "X^t * X ="
-    print product1
-
     # product2 = (X^t * Y)
     product2 = X.transpose() * Y
-    print "X^t * Y ="
-    print product2
 
     W = product1.getI() * product2
-    print "W ="
-    print W
-    print W.shape
-"""
+    return W
 
 """
 returns the set of weights that define the gradient descent estimate over the parameter data

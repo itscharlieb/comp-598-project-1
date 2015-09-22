@@ -82,13 +82,43 @@ Attribute Information:
 
 """
 
-import learner
+from learner import *
 
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
-data = learner.readData(path)
+data = readData(path)
+print "length of data: %d" % len(data)
 
-# split data into 2 with 70% being training data.
-training_data, testing_data = learner.partition(data, 0.7)
-#TODO: learn on training.
+print "-----------"
+print"1.0 as training:"
+# take all the data as training data.
+training_data, testing_data = partition(data, 1)
+print "length of training: %d" % len(training_data)
+print "length of testing: %d" % len(testing_data)
+W = train(ols, training_data)
+print "W ="
+print W
+print W.shape
+
+print "-----------"
+print"0.75 as training, 0.25 as test:"
+training_data, testing_data = partition(data, 0.75)
+print "length of training: %d" % len(training_data)
+print "length of testing: %d" % len(testing_data)
+W = train(ols, training_data)
+print "W ="
+print W
+print W.shape
+w = W.tolist()
+#TODO: check error on testing data with 'w'.
+
+print "-----------"
+print"0.5 as training, 0.5 as test:"
+training_data, testing_data = partition(data, 0.50)
+print "length of training: %d" % len(training_data)
+print "length of testing: %d" % len(testing_data)
+W = train(ols, training_data)
+print "W ="
+print W
+print W.shape
+w = W.tolist()
 #TODO: check error on test.
-
