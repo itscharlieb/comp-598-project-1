@@ -86,39 +86,31 @@ from learner import *
 
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
 data = readData(path)
-print "length of data: %d" % len(data)
 
 print "-----------"
-print"1.0 as training:"
+print "100'%' training:"
 # take all the data as training data.
 training_data, testing_data = partition(data, 1)
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
+print "length of training: %d/%d" % (len(training_data), len(data))
+print "length of testing: %d/%d" % (len(testing_data), len(data))
 W = train(ols, training_data)
 print "W ="
 print W
-print W.shape
 
 print "-----------"
-print"0.75 as training, 0.25 as test:"
+print "75'%' as training, 25'%' as test:"
 training_data, testing_data = partition(data, 0.75)
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
+print "length of training: %d/%d" % (len(training_data), len(data))
+print "length of testing: %d/%d" % (len(testing_data), len(data))
 W = train(ols, training_data)
-print "W ="
-print W
-print W.shape
-w = W.tolist()
-#TODO: check error on testing data with 'w'.
+error = squaredError(W, testing_data)
+print "error: %e" % error
 
 print "-----------"
-print"0.5 as training, 0.5 as test:"
+print "50'%' as training, 50'%' as test:"
 training_data, testing_data = partition(data, 0.50)
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
+print "length of training: %d/%d" % (len(training_data), len(data))
+print "length of testing: %d/%d" % (len(testing_data), len(data))
 W = train(ols, training_data)
-print "W ="
-print W
-print W.shape
-w = W.tolist()
-#TODO: check error on test.
+error = squaredError(W, testing_data)
+print "error: %e" % error

@@ -156,7 +156,25 @@ def gradientDescent(features, dependents):
     pass
 
 """
-returns the squared error of points over the function defined by weights
+Calculates the squared error made by a given set of weights on a given test data.
+@param weights - a column matrix of coefficients for different features, of the form: [[1.234],[-2.123],...]
+@param testData - the data that we want to test our weights on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
 """
-def squaredError(weights, points):
-    pass
+def squaredError(weights, testData):
+    error = 0
+    for test in testData:   # Go through each test example:
+        features = test[2]  # array of features.
+        target = test[3][0] # real target value is in an array with one element.
+        # Make sure that matrix multiplication is possible:
+        if len(features) != len(weights):
+            print "ERROR: number of features for this test is not %d" % len(weights)
+            print test
+            continue
+        prediction = np.matrix(features) * weights
+        # prediction is a 2D matrix with only 1 element, so need to cast to list and grab the element.
+        prediction = prediction.tolist()[0][0]
+        # the squared error is the sum (over all examples) of the squared difference
+        #   between the real target value and the prediction value.
+        error = error + (target - prediction)**2
+
+    return error
