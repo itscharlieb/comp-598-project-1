@@ -126,11 +126,15 @@ def multiTrain(trainFunc, partitions):
 
 
 """
-Calculate the Ordinary Least Squares coefficients for some features and their targets.
-@param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
-@return - the coefficient matrix corresponding to the OLS line estimate.
+Generates the features (X) and target (Y) matrices.
+@param trainingData - the data that we want to convert to matrices, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - two matrices X and Y for the features and the targets respectively.
+example of X: [     |    example of Y: [
+    [1,2,3,4,5],    |        [6],
+    [2,1,4,4,6],    |        [3],
+    [4,2,3,5,5]     |        [5]
+]                   |    ]
 """
-
 def generateMatrixes(trainingData):
     features = []
     targets = []
@@ -143,6 +147,11 @@ def generateMatrixes(trainingData):
     
     return X,Y
 
+"""
+Calculate the Ordinary Least Squares coefficients for some features and their targets.
+@param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - the coefficient matrix corresponding to the OLS line estimate.
+"""
 def ols(trainingData):
 
     X,Y = generateMatrixes(trainingData)
@@ -158,7 +167,6 @@ def ols(trainingData):
 """
 returns the set of weights that define the gradient descent estimate over the parameter data
 """
-
 def ErrW(wVec, xVec, yVec):
 
     p1 = xVec.transpose() * xVec
@@ -198,6 +206,7 @@ def gradientDescent(trainingData):
 Calculates the squared error made by a given set of weights on a given test data.
 @param weights - a column matrix of coefficients for different features, of the form: [[1.234],[-2.123],...]
 @param testData - the data that we want to test our weights on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return the the sum (over all examples) of the squared difference between the real target value and the prediction value.
 """
 def squaredError(weights, testData):
     error = 0

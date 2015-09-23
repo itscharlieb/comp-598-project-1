@@ -96,56 +96,27 @@ print "-----------"
 print "100'%' training:"
 # take all the data as training data.
 training_data, testing_data = partition(data, 1)
-<<<<<<< HEAD
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
-W = train(weightSoln, training_data)
-=======
 print "length of training: %d/%d" % (len(training_data), len(data))
 print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(ols, training_data)
->>>>>>> 777b2e309fda754d84479790926253baf56ec367
+W = train(weightSoln, training_data)
 print "W ="
 print W
 
 print "-----------"
 print "75'%' as training, 25'%' as test:"
 training_data, testing_data = partition(data, 0.75)
-<<<<<<< HEAD
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
-W = train(weightSoln, training_data)
-print "W ="
-print W
-print W.shape
-w = W.tolist()
-#TODO: check error on testing data with 'w'.
-=======
 print "length of training: %d/%d" % (len(training_data), len(data))
 print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(ols, training_data)
+W = train(weightSoln, training_data)
 error = squaredError(W, testing_data)
 print "error: %e" % error
->>>>>>> 777b2e309fda754d84479790926253baf56ec367
 
 print "-----------"
 print "50'%' as training, 50'%' as test:"
 training_data, testing_data = partition(data, 0.50)
-<<<<<<< HEAD
-print "length of training: %d" % len(training_data)
-print "length of testing: %d" % len(testing_data)
-W = train(weightSoln, training_data)
-print "W ="
-print W
-print W.shape
-w = W.tolist()
-#TODO: check error on test.
-
-
-=======
 print "length of training: %d/%d" % (len(training_data), len(data))
 print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(ols, training_data)
+W = train(weightSoln, training_data)
 error = squaredError(W, testing_data)
 print "error: %e" % error
->>>>>>> 777b2e309fda754d84479790926253baf56ec367
+
