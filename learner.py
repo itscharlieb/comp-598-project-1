@@ -73,7 +73,7 @@ def partition(data, p = 0.5):
 
 
 """
-Partitions the data into len(data)/k subsets of size k.
+Partitions the data into k subsets of size len(data)/k.
 @param data - an array of tuples of the form (url, timedelta, array of features, array of target).
 @param k - the number of subsets we want.
 @return - an array of data subsets with subsets of the form [(url, timedelta, array of features, array of target), (...), ...].
