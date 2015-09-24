@@ -7,9 +7,8 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
-import csv
+import csv, random
 import numpy as np
-import random
 
 """
 Read the data from a CSV file and put it all in an array.
@@ -74,23 +73,16 @@ def partition(data, p = 0.5):
 
 
 """
-Partitions data into p/100 of training data and 1-(p/100) testing data, r times.
+Partitions the data into k subsets of size len(data)/k.
 @param data - an array of tuples of the form (url, timedelta, array of features, array of target).
-@param p - the percentage of the data that will be used to train our learner. (default is 50%).
-@param r - the number of time we split the data. (default is 10 times).
-@return - an array of arrays of the form: [training, testing],
-           with training and testing being arrays of tuples of the form (url, timedelta, array of features, array of target).
+@param k - the number of subsets we want.
+@return - an array of data subsets with subsets of the form [(url, timedelta, array of features, array of target), (...), ...].
 example of partitions: [
     [
-        [
-            (url1, timedelta1, [1,2,3,4,5], [6]),
-            (url2, timedelta2, [2,1,4,4,6], [3]),
-            (url3, timedelta3, [4,2,3,5,5], [5])
-        ],
-        [
-            (url4, timedelta4, [3,2,3,1,5], [2]),
-            (url5, timedelta5, [2,1,6,6,1], [4])
-        ]
+        (url1, timedelta1, [1,2,3,4,5], [6]),
+        (url2, timedelta2, [2,1,4,4,6], [3]),
+        ...,
+        (urlk, timedeltak, [4,2,3,5,5], [5])
     ],
     [
         ...
@@ -98,12 +90,27 @@ example of partitions: [
     ...
 ]
 """
-def multiPartition(data, p = 0.5, r = 10):
-    partitions = []
-    for _ in range(r):
-        training, testing = partition(data, p)
-        partitions.append([training, testing])
-    return partitions
+def multiPartition(data, k):
+
+    l = len(data) / k # l is the subset size.
+
+    # let's go step by step with this one-liner:
+    # we return an array: return [...].
+    # this array is made of subsets of the data from i to i+l: data[i:i+l].
+    # so we have: return [[data[i],data[i+1],...,data[i+l-1]], [...], ...].
+    # i is going to be an index from 0 to len(data), but by jumping over k values,
+    #  which leaves space for our l data items (at i,i+1,...,i+l-1) in one subset.
+    partitions = [data[i:i+l] for i in range(0, len(data), l)]
+
+    
+    # because len(data) / k might not be an perfect integer, we may have fewer examples: len(data)modulo(k).
+    if len(data)%k != 0:
+        print "Warning, %d is not a multiple of %d. Skipping %d elements." % (len(data), k, len(data)%k)
+        return partitions[:-1]
+    else:
+        return partitions
+
+
 
 
 """
@@ -116,15 +123,66 @@ def train(trainFunc, trainingData):
 	return trainFunc(trainingData)
 
 """
+Train some given learner with different sets of trainingData & testingData.
+@see: k-fold cross validation.
+@param trainFunc - the learner that we want to use.
+@param partitions - an array of data subsets with subsets of the form [(url, timedelta, array of features, array of target), (...), ...].
+@return - an array of different sets of weights for each iteration of the learning.
+example of weights: [
+    [
+        [w11],
+        [w12],
+        ...,
+        [w1f],
+    ],
+    ...
+]
 """
 def multiTrain(trainFunc, partitions):
-    results = []
-    for p in partitions:
-        trainingData = p[0]
-        testingData = p[1]
-        results.append(train(trainFunc, trainingData))
-    return results
 
+    """Custom flattening function for training array"""
+    def customFlat(train):
+        a = []
+        for subset in train:
+            for example in subset:
+                a.append(example)
+        return a
+
+    weights = []
+    #errors = []
+    print "Training %d times..." % len(partitions)
+    for i in range(len(partitions)):    # for each subset of data:
+        testingData = partitions[i]     # the testing data is one subset.
+        trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
+        trainingData = customFlat(trainingData)                # merge all subsets into one big training data.
+        weights.append(train(trainFunc, trainingData)) # get the weights learned by this training data.
+        #errors.append(squaredError(weights[-1], testingData)) # get the error of those weights on the testing data.
+
+    return weights#, errors
+
+
+
+"""
+Generates the features (X) and target (Y) matrices.
+@param trainingData - the data that we want to convert to matrices, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - two matrices X and Y for the features and the targets respectively.
+example of X: [     |    example of Y: [
+    [1,2,3,4,5],    |        [6],
+    [2,1,4,4,6],    |        [3],
+    [4,2,3,5,5]     |        [5]
+]                   |    ]
+"""
+def generateMatrixes(trainingData):
+    features = []
+    targets = []
+    for example in trainingData:
+        features.append(example[2]) #features are the 3rd element of an example tuple.
+        targets.append(example[3]) #the target is the 4th element of an example tuple.
+
+    X = np.matrix(features, dtype = np.float64)
+    Y = np.matrix(targets, dtype = np.float64)
+    
+    return X,Y
 
 """
 Calculate the Ordinary Least Squares coefficients for some features and their targets.
@@ -132,15 +190,8 @@ Calculate the Ordinary Least Squares coefficients for some features and their ta
 @return - the coefficient matrix corresponding to the OLS line estimate.
 """
 def ols(trainingData):
+    X,Y = generateMatrixes(trainingData)
 
-    features = []
-    targets = []
-    for example in trainingData:
-        features.append(example[2]) #features are the 3rd element of an example tuple.
-        targets.append(example[3]) #the target is the 4th element of an example tuple.
-
-    X = np.matrix(features)
-    Y = np.matrix(targets)
     # product1 = (X^t * X)^-1
     product1 = (X.transpose() * X)
     # product2 = (X^t * Y)
@@ -152,11 +203,62 @@ def ols(trainingData):
 """
 returns the set of weights that define the gradient descent estimate over the parameter data
 """
-def gradientDescent(features, dependents):
-    pass
+def ErrW(wVec, xVec, yVec):
+
+    p1 = xVec.transpose() * xVec
+    p2 = p1 * wVec.transpose()
+    p3 = xVec.transpose() * yVec
+    p4 = p2-p3
+    return np.multiply(2.0, p4)
+
+    #TOD0: Look into wolfe conditions or robin monroe's sequence for alpha
+def gradientDescent(trainingData):
+
+    ## constant values
+    alpha = random.random()  #to be replaced later with a more sophisticated alg
+    epsilon = 0.0001    
+    X,Y = generateMatrixes(trainingData)
+    lenM = X.shape[1]
+
+   # initial construction of gradient descent alg
+    tmp = [random.random() for x in range(lenM)]
+    wCrt = np.matrix(tmp)
+    aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
+    wNext = wCrt - aErr
+
+    ## gradient descent
+    while( np.linalg.norm(wNext - wCrt) > epsilon):
+        print np.linalg.norm(wNext - wCrt)
+        wCrt = wNext
+        aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
+        wNext = wCrt - aErr
+        
+
+        if np.linalg.norm(wCrt) == np.linalg.norm(wNext):
+            return wNext
+    return wNext    
 
 """
-returns the squared error of points over the function defined by weights
+Calculates the squared error made by a given set of weights on a given test data.
+@param weights - a column matrix of coefficients for different features, of the form: [[1.234],[-2.123],...]
+@param testData - the data that we want to test our weights on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return the the sum (over all examples) of the squared difference between the real target value and the prediction value.
 """
-def squaredError(weights, points):
-    pass
+def squaredError(weights, testData):
+    error = 0
+    for test in testData:   # Go through each test example:
+        features = test[2]  # array of features.
+        target = test[3][0] # real target value is in an array with one element.
+        # Make sure that matrix multiplication is possible:
+        if len(features) != len(weights):
+            print "ERROR: number of features for this test is not %d" % len(weights)
+            print test
+            continue
+        prediction = np.matrix(features) * weights
+        # prediction is a 2D matrix with only 1 element, so need to cast to list and grab the element.
+        prediction = prediction.tolist()[0][0]
+        # the squared error is the sum (over all examples) of the squared difference
+        #   between the real target value and the prediction value.
+        error = error + (target - prediction)**2
+
+    return error
