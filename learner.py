@@ -73,23 +73,16 @@ def partition(data, p = 0.5):
 
 
 """
-Partitions data into p/100 of training data and 1-(p/100) testing data, r times.
+Partitions the data into len(data)/k subsets of size k.
 @param data - an array of tuples of the form (url, timedelta, array of features, array of target).
-@param p - the percentage of the data that will be used to train our learner. (default is 50%).
-@param r - the number of time we split the data. (default is 10 times).
-@return - an array of arrays of the form: [training, testing],
-           with training and testing being arrays of tuples of the form (url, timedelta, array of features, array of target).
+@param k - the number of subsets we want.
+@return - an array of data subsets with subsets of the form [(url, timedelta, array of features, array of target), (...), ...].
 example of partitions: [
     [
-        [
-            (url1, timedelta1, [1,2,3,4,5], [6]),
-            (url2, timedelta2, [2,1,4,4,6], [3]),
-            (url3, timedelta3, [4,2,3,5,5], [5])
-        ],
-        [
-            (url4, timedelta4, [3,2,3,1,5], [2]),
-            (url5, timedelta5, [2,1,6,6,1], [4])
-        ]
+        (url1, timedelta1, [1,2,3,4,5], [6]),
+        (url2, timedelta2, [2,1,4,4,6], [3]),
+        ...,
+        (urlk, timedeltak, [4,2,3,5,5], [5])
     ],
     [
         ...
@@ -97,12 +90,27 @@ example of partitions: [
     ...
 ]
 """
-def multiPartition(data, p = 0.5, r = 10):
-    partitions = []
-    for _ in range(r):
-        training, testing = partition(data, p)
-        partitions.append([training, testing])
-    return partitions
+def multiPartition(data, k):
+
+    l = len(data) / k # l is the subset size.
+
+    # let's go step by step with this one-liner:
+    # we return an array: return [...].
+    # this array is made of subsets of the data from i to i+l: data[i:i+l].
+    # so we have: return [[data[i],data[i+1],...,data[i+l-1]], [...], ...].
+    # i is going to be an index from 0 to len(data), but by jumping over k values,
+    #  which leaves space for our l data items (at i,i+1,...,i+l-1) in one subset.
+    partitions = [data[i:i+l] for i in range(0, len(data), l)]
+
+    
+    # because len(data) / k might not be an perfect integer, we may have fewer examples: len(data)modulo(k).
+    if len(data)%k != 0:
+        print "Warning, %d is not a multiple of %d. Skipping %d elements." % (len(data), k, len(data)%k)
+        return partitions[:-1]
+    else:
+        return partitions
+
+
 
 
 """
@@ -115,14 +123,43 @@ def train(trainFunc, trainingData):
 	return trainFunc(trainingData)
 
 """
+Train some given learner with different sets of trainingData & testingData.
+@see: k-fold cross validation.
+@param trainFunc - the learner that we want to use.
+@param partitions - an array of data subsets with subsets of the form [(url, timedelta, array of features, array of target), (...), ...].
+@return - an array of different sets of weights for each iteration of the learning.
+example of weights: [
+    [
+        [w11],
+        [w12],
+        ...,
+        [w1f],
+    ],
+    ...
+]
 """
 def multiTrain(trainFunc, partitions):
-    results = []
-    for p in partitions:
-        trainingData = p[0]
-        testingData = p[1]
-        results.append(train(trainFunc, trainingData))
-    return results
+
+    """Custom flattening function for training array"""
+    def customFlat(train):
+        a = []
+        for subset in train:
+            for example in subset:
+                a.append(example)
+        return a
+
+    weights = []
+    #errors = []
+    print "Training %d times..." % len(partitions)
+    for i in range(len(partitions)):    # for each subset of data:
+        testingData = partitions[i]     # the testing data is one subset.
+        trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
+        trainingData = customFlat(trainingData)                # merge all subsets into one big training data.
+        weights.append(train(trainFunc, trainingData)) # get the weights learned by this training data.
+        #errors.append(squaredError(weights[-1], testingData)) # get the error of those weights on the testing data.
+
+    return weights#, errors
+
 
 
 """
@@ -153,7 +190,6 @@ Calculate the Ordinary Least Squares coefficients for some features and their ta
 @return - the coefficient matrix corresponding to the OLS line estimate.
 """
 def ols(trainingData):
-
     X,Y = generateMatrixes(trainingData)
 
     # product1 = (X^t * X)^-1
