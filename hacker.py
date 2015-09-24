@@ -13,6 +13,7 @@ from collections import deque
 
 items = open("./data/items", "a")
 users = open("./data/users", "a")
+topStories = open("./data/topStories", "a")
 
 itemCache = {}
 userCache = {}
@@ -45,7 +46,7 @@ def recordItem(jsonItem):
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	items.write(str(jsonItem))
+	topStories.write(str(jsonItem))
 
 
 def recordUser(jsonUser):
@@ -91,7 +92,8 @@ def recordStory(jsonItem):
 	userId = jsonItem["by"]
 	getUser(userId)
 
-	commentIds = deque(jsonItem["kids"])
+	if "kids" in jsonItem:
+		commentIds = deque(jsonItem["kids"])
 
 	#while comments is not empty
 	while commentIds:
@@ -105,8 +107,14 @@ def recordStory(jsonItem):
 
 
 def main():
-	jsonStory = getItem(8863)
-	recordStory(jsonStory)
+	topStories = requests.get("https://hacker-news.firebaseio.com/v0/topstories.json").json()
+	for storyId in topStories:
+		story = getItem(storyId)
+
+		print ("Recording story with id {}".format(storyId))
+		print (str(story))
+
+		recordStory(story)
 
 
 if __name__ == "__main__":
