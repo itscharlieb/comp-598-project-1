@@ -58,12 +58,12 @@ def userUri(id):
 	return "https://hacker-news.firebaseio.com/v0/user/" + id + ".json"
 
 
-def recordItem(jsonItem, itemFile):
+def recordItem(item, itemFile):
 	"""
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	itemFile.write(str(jsonItem))
+	itemFile.write(str(item) + "\n")
 
 
 def recordUser(jsonUser, userFile):
@@ -71,7 +71,7 @@ def recordUser(jsonUser, userFile):
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	userFile.write(str(jsonUser))
+	userFile.write(str(jsonUser) + "\n")
 
 
 def getItem(id, itemFile):
@@ -106,11 +106,14 @@ def recordStory(jsonItem, itemFile, userFile):
 	The data of interest in this search is hacker-news stories.
 	Handle story finds all data relates to a story, including comments and user information,
 	"""
-	userId = jsonItem["by"]
-	getUser(userId, userFile)
 
+	if "by" in jsonItem:
+		userId = jsonItem["by"]
+		getUser(userId, userFile)
+
+	commentIds = deque()
 	if "kids" in jsonItem:
-		commentIds = deque(jsonItem["kids"])
+		commentIds.extend(jsonItem["kids"])
 
 	#while comments is not empty
 	while commentIds:
@@ -143,55 +146,71 @@ def searchItems(itr, itemFile, userFile):
 itemCache = {}
 userCache = {}
 
-reportFile = open("./data/report.txt", "a")
-reportFile.write("Testing optimal number of threads for downloading data from hacker-news.")
-reportFile.write("The first 24 items posted on hacker-news (ids 1 thru 24) will be processed.")
-reportFile.write("If an item represents a story, all items related to that story will also be downloaded.")
-reportFile.write("Execution will be tested serially, and with 1, 2, 4 ... 256 threads.")
-reportFile.write("========================================================================\n\n")
+itemFileName = "./data/items100000.json"
+userFileName = "./data/users100000.json"
 
-start = time.time()
-itemsSerial = open("./data/itemsSerial.json", "a")
-usersSerial = open("./data/usersSerial.json", "a")
-serialItr = ThreadsafeIterator([x for x in range(1, 25)])
-searchItems(serialItr, itemsSerial, usersSerial)
-stop = time.time()
+parallelItr = ThreadsafeIterator([x for x in range(1, 100001)])
+itemsParallel = ThreadsafeFileWriter(open(itemFileName, "a"))
+usersParallel = ThreadsafeFileWriter(open(userFileName, "a"))
 
-reportString = "[Serial exexcution time] {}".format(stop - start)
-print(reportString)
-reportFile.write(reportString)
+threads = []
+for threadNum in range(8):
+	t = threading.Thread(target=searchItems, args=(parallelItr, itemsParallel, usersParallel))
+	threads.append(t)
+	t.start()
 
-itemCache.clear()
-userCache.clear()
+for t in threads:
+	t.join()
 
-for numThreads in [2**x for x in range(1, 9)]:
-	start = time.time()
+# reportFile = open("./data/report.txt", "a")
+# reportFile.write("Testing optimal number of threads for downloading data from hacker-news.")
+# reportFile.write("The first 24 items posted on hacker-news (ids 1 thru 24) will be processed.")
+# reportFile.write("If an item represents a story, all items related to that story will also be downloaded.")
+# reportFile.write("Execution will be tested serially, and with 1, 2, 4 ... 256 threads.")
+# reportFile.write("========================================================================\n\n")
 
-	itemFileName = "./data/itemsParallel" + str(numThreads) + ".json"
-	userFileName = "./data/usersParallel" + str(numThreads) + ".json"
+# start = time.time()
+# itemsSerial = open("./data/itemsSerial.json", "a")
+# usersSerial = open("./data/usersSerial.json", "a")
+# serialItr = ThreadsafeIterator([x for x in range(1, 25)])
+# searchItems(serialItr, itemsSerial, usersSerial)
+# stop = time.time()
 
-	parallelItr = ThreadsafeIterator(range(1, 25))
-	itemsParallel = ThreadsafeFileWriter(open(itemFileName, "a"))
-	usersParallel = ThreadsafeFileWriter(open(userFileName, "a"))
+# reportString = "[Serial exexcution time] {}".format(stop - start)
+# print(reportString)
+# reportFile.write(reportString)
 
-	threads = []
-	for i in range(numThreads):
-		thread = threading.Thread(target=searchItems, args=(parallelItr, itemsParallel, usersParallel))
-		threads.append(thread)
-		thread.start()
+# itemCache.clear()
+# userCache.clear()
 
-	while threads:
-		thread = threads.pop()
-		thread.join()
+# for numThreads in [2**x for x in range(1, 9)]:
+# 	start = time.time()
 
-	stop = time.time()
+# 	itemFileName = "./data/itemsParallel" + str(numThreads) + ".json"
+# 	userFileName = "./data/usersParallel" + str(numThreads) + ".json"
 
-	itemCache.clear()
-	userCache.clear()
+# 	parallelItr = ThreadsafeIterator(range(1, 25))
+# 	itemsParallel = ThreadsafeFileWriter(open(itemFileName, "a"))
+# 	usersParallel = ThreadsafeFileWriter(open(userFileName, "a"))
 
-	reportString = "[Parallel execution time with {} threads] {}".format(numThreads, (stop - start))
-	print (reportString)
-	reportFile.write(reportString)
+# 	threads = []
+# 	for i in range(numThreads):
+# 		thread = threading.Thread(target=searchItems, args=(parallelItr, itemsParallel, usersParallel))
+# 		threads.append(thread)
+# 		thread.start()
+
+# 	while threads:
+# 		thread = threads.pop()
+# 		thread.join()
+
+# 	stop = time.time()
+
+# 	itemCache.clear()
+# 	userCache.clear()
+
+# 	reportString = "[Parallel execution time with {} threads] {}".format(numThreads, (stop - start))
+# 	print (reportString)
+# 	reportFile.write(reportString)
 
 
 
