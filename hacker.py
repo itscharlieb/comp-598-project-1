@@ -9,20 +9,37 @@
 
 import json
 import requests
+import threading
+import time
 from collections import deque
 
-items = open("./data/items", "a")
-users = open("./data/users", "a")
-topStories = open("./data/topStories", "a")
+class ThreadsafeIterator(object):
+    def __init__(self, it):
+        self.lock = threading.Lock()
+        self.it = it.__iter__()
 
-itemCache = {}
-userCache = {}
-# comments = open("./data/comments", "a")
-# jobs     = open("./data/jobs", "a")
-# pollopts = open("./data/pollopts", "a")
-# polls    = open("./data/polls", "a")
-# stories  = open("./data/stories", "a")
-# users    = open("./data/users", "a")
+    def __iter__(self):
+    	return self
+
+    def next(self):
+        self.lock.acquire()
+        try:
+            return self.it.next()
+        finally:
+            self.lock.release()
+
+
+class ThreadsafeFileWriter(object):
+	def __init__(self, f):
+		self.lock = threading.Lock()
+		self.f = f
+
+	def write(self, data):
+		self.lock.acquire()
+		try:
+			self.f.write(str(data))
+		finally:
+			self.lock.release()
 
 
 def itemUri(id):
@@ -41,56 +58,56 @@ def userUri(id):
 	return "https://hacker-news.firebaseio.com/v0/user/" + id + ".json"
 
 
-def recordItem(jsonItem):
+def recordItem(jsonItem, itemFile):
 	"""
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	topStories.write(str(jsonItem))
+	itemFile.write(str(jsonItem))
 
 
-def recordUser(jsonUser):
+def recordUser(jsonUser, userFile):
 	"""
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	users.write(str(jsonUser))
+	userFile.write(str(jsonUser))
 
 
-def getItem(id):
+def getItem(id, itemFile):
 	"""
 	@param id of item to be pulled from hacker-news
-	@returns json item associated with id
+	@returns dict associated with id
 	automatically stores the item in a file
 	"""
 	if not id in itemCache:
 		jsonItem = requests.get(itemUri(id)).json()
-		recordItem(jsonItem)
+		recordItem(jsonItem, itemFile)
 		itemCache[id] = jsonItem
 	return itemCache[id]
 
 
-def getUser(id):
+def getUser(id, userFile):
 	"""
 	@param id of user to be pulled from hacker-news
-	@returns json user associated with id
+	@returns dict associated with id
 	automatically stores the user in a file
 	"""
 	if not id in userCache:
 		jsonUser = requests.get(userUri(id)).json()
-		recordUser(jsonUser)
+		recordUser(jsonUser, userFile)
 		userCache[id] = jsonUser
 	return userCache[id]
 
 
-def recordStory(jsonItem):
+def recordStory(jsonItem, itemFile, userFile):
 	"""
 	@param id of story item
 	The data of interest in this search is hacker-news stories.
 	Handle story finds all data relates to a story, including comments and user information,
 	"""
 	userId = jsonItem["by"]
-	getUser(userId)
+	getUser(userId, userFile)
 
 	if "kids" in jsonItem:
 		commentIds = deque(jsonItem["kids"])
@@ -98,24 +115,84 @@ def recordStory(jsonItem):
 	#while comments is not empty
 	while commentIds:
 		commentId = commentIds.popleft()
-		comment = getItem(commentId)
+		comment = getItem(commentId, itemFile)
 		if "kids" in comment:
 			childCommentIds = comment["kids"]
 			commentIds.extend(childCommentIds)
 		if "by" in comment:
-			getUser(comment["by"])
+			getUser(comment["by"], userFile)
 
 
-def main():
-	topStories = requests.get("https://hacker-news.firebaseio.com/v0/topstories.json").json()
-	for storyId in topStories:
-		story = getItem(storyId)
+def searchItems(itr, itemFile, userFile):
+	itemsRecorded = 0
+	storiesRecorded = 0
+	try:
+		while(True):
+			itemId = itr.next()
+			item = getItem(itemId, itemFile)
+			itemsRecorded += 1
 
-		print ("Recording story with id {}".format(storyId))
-		print (str(story))
+			if item["type"] == "story":
+				recordStory(item, itemFile, userFile)
+				storiesRecorded += 1 
 
-		recordStory(story)
+	except StopIteration:
+		print ("{} stories were recorded.".format(storiesRecorded))
 
 
-if __name__ == "__main__":
-	main()
+itemCache = {}
+userCache = {}
+
+reportFile = open("./data/report.txt", "a")
+reportFile.write("Testing optimal number of threads for downloading data from hacker-news.")
+reportFile.write("The first 24 items posted on hacker-news (ids 1 thru 24) will be processed.")
+reportFile.write("If an item represents a story, all items related to that story will also be downloaded.")
+reportFile.write("Execution will be tested serially, and with 1, 2, 4 ... 256 threads.")
+reportFile.write("========================================================================\n\n")
+
+start = time.time()
+itemsSerial = open("./data/itemsSerial.json", "a")
+usersSerial = open("./data/usersSerial.json", "a")
+serialItr = ThreadsafeIterator([x for x in range(1, 25)])
+searchItems(serialItr, itemsSerial, usersSerial)
+stop = time.time()
+
+reportString = "[Serial exexcution time] {}".format(stop - start)
+print(reportString)
+reportFile.write(reportString)
+
+itemCache.clear()
+userCache.clear()
+
+for numThreads in [2**x for x in range(1, 9)]:
+	start = time.time()
+
+	itemFileName = "./data/itemsParallel" + str(numThreads) + ".json"
+	userFileName = "./data/usersParallel" + str(numThreads) + ".json"
+
+	parallelItr = ThreadsafeIterator(range(1, 25))
+	itemsParallel = ThreadsafeFileWriter(open(itemFileName, "a"))
+	usersParallel = ThreadsafeFileWriter(open(userFileName, "a"))
+
+	threads = []
+	for i in range(numThreads):
+		thread = threading.Thread(target=searchItems, args=(parallelItr, itemsParallel, usersParallel))
+		threads.append(thread)
+		thread.start()
+
+	while threads:
+		thread = threads.pop()
+		thread.join()
+
+	stop = time.time()
+
+	itemCache.clear()
+	userCache.clear()
+
+	reportString = "[Parallel execution time with {} threads] {}".format(numThreads, (stop - start))
+	print (reportString)
+	reportFile.write(reportString)
+
+
+
+
