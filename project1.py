@@ -91,11 +91,12 @@ weightSoln = ols
 
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
 data = readData(path)
-subsets = multiPartition(data, 11) #try with 17, 22, 34, 44, ...
+subsets = multiPartition(data, 11) #creates 11 subsets of equal size. Try with 11, 17, 22, 34, 44, ..., 187, 212, ..., 39644.
 print "There are %d subsets." % len(subsets)
 print "Each subset has %d examples." % len(subsets[0])
-weights = multiTrain(weightSoln, subsets) # k-fold cross validation
-print "There are %d sets of weights." % len(weights)
+averageWeights, averageError = multiTrain(weightSoln, subsets) # k-fold cross validation
+print averageWeights 
+print averageError
 
 """
 print "100'%' training:"

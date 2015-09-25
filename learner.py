@@ -92,15 +92,15 @@ example of partitions: [
 """
 def multiPartition(data, k):
 
-    l = len(data) / k # l is the subset size.
+    size = len(data) / k # size is the subset size.
 
     # let's go step by step with this one-liner:
     # we return an array: return [...].
-    # this array is made of subsets of the data from i to i+l: data[i:i+l].
-    # so we have: return [[data[i],data[i+1],...,data[i+l-1]], [...], ...].
+    # this array is made of subsets of the data from i to i+size: data[i:i+size].
+    # so we have: return [[data[i],data[i+1],...,data[i+size-1]], [...], ...].
     # i is going to be an index from 0 to len(data), but by jumping over k values,
-    #  which leaves space for our l data items (at i,i+1,...,i+l-1) in one subset.
-    partitions = [data[i:i+l] for i in range(0, len(data), l)]
+    #  which leaves space for our 'size' data items (at i,i+1,...,i+size-1) in one subset.
+    partitions = [data[i:i+size] for i in range(0, len(data), size)]
 
     
     # because len(data) / k might not be an perfect integer, we may have fewer examples: len(data)modulo(k).
@@ -111,7 +111,44 @@ def multiPartition(data, k):
         return partitions
 
 
+"""
+Calculates the average weigth for each feature given a set of weights.
+@param weights - the set of different weights, of the form: [ [[w11],...,[w1size]], ..., [] ]
+@return one set of weights (as a matrix): the average.
+"""
+def averageWeights(weights):
+    # Create the average 2D array:
+    average = []
+    for _ in range(len(weights[0])): # for each feature in  a set of weights:
+        average.append([]) # create an empty array.
 
+    for w in weights: # go through each set of weights
+        for feature_index in range(len(w)): # go through each feature weight:
+            # append to average the new weight of the corresponding feature.
+            average[feature_index].append(w[feature_index][0])
+    # Now average looks like this: [
+    #   [f1w1, f1w2, f1w3, ..., f1wm], <-- different weights (m of them) of feature 1
+    #   [f2w1, f2w2, f2w3, ..., f2wm], <-- different weights (m of them) of feature 2
+    #   ...
+    #   [fnw1, fnw2, fnw3, ..., fnwm], <-- different weights (m of them) of feature n
+    # ]
+    #
+    # We now want to average each array (a=[fw1,...,fwm]) for each feature.
+    # We map to each element 'a' of 'average' a function: map(lambda a : ... , average)
+    # This function returns an array with 1 element inside it: the average of all other elements.
+    # The average of an array is calculated by 'reducing' all elements to their sum: reduce(lambda x,y: x+y, a)
+    #  and dividing by the number of elements: reduce(lambda x,y: x+y, a) / len(a)
+    W = map(lambda a : [reduce(lambda x,y: x+y, a)/len(a)], average)
+    return np.matrix(W)
+
+"""
+Calculates the average of the squared errors we got by training multiple times the data.
+@param errors - the array of squared errors for each training.
+@return the average of the parameter array.
+"""
+def crossValidation(errors):
+    # return the average of the array. See one-liner details in 'averageWeights()'
+    return reduce(lambda x,y: x+y, errors) / len(errors)
 
 """
 Train some given learner with some given data.
@@ -149,16 +186,16 @@ def multiTrain(trainFunc, partitions):
         return a
 
     weights = []
-    #errors = []
+    errors = []
     print "Training %d times..." % len(partitions)
     for i in range(len(partitions)):    # for each subset of data:
         testingData = partitions[i]     # the testing data is one subset.
         trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
-        trainingData = customFlat(trainingData)                # merge all subsets into one big training data.
-        weights.append(train(trainFunc, trainingData)) # get the weights learned by this training data.
-        #errors.append(squaredError(weights[-1], testingData)) # get the error of those weights on the testing data.
+        trainingData = customFlat(trainingData)          # merge all subsets into one big training data.
+        weights.append(train(trainFunc, trainingData).tolist()) # get the weights learned by this training data.
+        errors.append(squaredError(weights[-1], testingData))   # get the error of those weights on the testing data.
 
-    return weights#, errors
+    return averageWeights(weights), crossValidation(errors)
 
 
 
