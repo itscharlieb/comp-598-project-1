@@ -11,6 +11,7 @@ import json
 import requests
 import threading
 import time
+import json
 from collections import deque
 
 class ThreadsafeIterator(object):
@@ -63,7 +64,7 @@ def recordItem(item, itemFile):
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	itemFile.write(str(item) + "\n")
+	itemFile.write(json.dumps(item) + "\n")
 
 
 def recordUser(jsonUser, userFile):
@@ -71,7 +72,7 @@ def recordUser(jsonUser, userFile):
 	@param json item to be recorded
 	stores the item in the appropriate text file
 	"""
-	userFile.write(str(jsonUser) + "\n")
+	userFile.write(json.dumps(jsonUser) + "\n")
 
 
 def getItem(id, itemFile):
@@ -154,7 +155,7 @@ itemsParallel = ThreadsafeFileWriter(open(itemFileName, "a"))
 usersParallel = ThreadsafeFileWriter(open(userFileName, "a"))
 
 threads = []
-for threadNum in range(8):
+for threadNum in range(32):
 	t = threading.Thread(target=searchItems, args=(parallelItr, itemsParallel, usersParallel))
 	threads.append(t)
 	t.start()
