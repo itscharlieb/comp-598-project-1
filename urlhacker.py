@@ -11,6 +11,12 @@
 import json
 import requests
 
+#Alchemy API key
+#Access to:
+#	1,000 daily transactions
+#	Technical email support
+#	All of our text and image analysis APIs
+APIKEY = "1696ca287e5dc06b6ecb340719f98540352f3815"
 
 def parseUrl(url):
 	"""
