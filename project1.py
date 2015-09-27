@@ -83,20 +83,23 @@ Attribute Information:
 """
 
 from learner import *
+import datetime
 
-## ols
-## gradient descent
+start = datetime.datetime.now()
 
 weightSoln = ols
 
 path = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
 data = readData(path)
-subsets = multiPartition(data, 11) #creates 11 subsets of equal size. Try with 11, 17, 22, 34, 44, ..., 187, 212, ..., 39644.
+# Try with k = 1,2,4,8,11,17,22,34,44, ..., 187, 212, ..., 901,1166,1802,2332,3604,4918,9911,19822,39644.
+subsets = multiPartition(data, 39644) #creates k subsets of equal size.
 print "There are %d subsets." % len(subsets)
 print "Each subset has %d examples." % len(subsets[0])
 averageWeights, averageError = multiTrain(weightSoln, subsets) # k-fold cross validation
-print averageWeights 
 print averageError
+
+end = datetime.datetime.now()
+print end-start
 
 """
 print "100'%' training:"
