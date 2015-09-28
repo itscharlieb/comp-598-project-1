@@ -46,9 +46,23 @@ def parseUrl(url):
 
     print('Processing url: ', url)
 
-    ## Get the text of the article (include links)
     text = ""
+    title = ""
     links = 0
+    keywords = []
+    
+    ## Get keywords (with relevance > 0.8) and title in 1 API call
+    response = alchemyapi.combined('url', url, {'extract':'keyword,title'})
+    if response['status'] == 'OK':
+        #print response
+        title = response['title'].encode('utf-8')
+        for kw in response['keywords']:
+            if kw['relevance'] > 0.8 :
+                keywords.append(kw['text'].encode('utf-8'))
+    else:
+        print('Error in combined call: ', response['statusInfo'])
+    
+    ## Get the text of the article (include links)
     response = alchemyapi.text('url', url, {'extractLinks':1})
     if response['status'] == 'OK':
         #print response
@@ -56,26 +70,6 @@ def parseUrl(url):
         links = text.count("<a href=")
     else:
         print('Error in text extraction call: ', response['statusInfo'])
-
-    ## Get the title of the article
-    title = ""
-    response = alchemyapi.title('url', url)
-    if response['status'] == 'OK':
-        #print response
-        title = response['title'].encode('utf-8')
-    else:
-        print('Error in title extraction call: ', response['statusInfo'])
-
-    ## Get the keywords of the article (with relevance > 0.8)
-    keywords = []
-    response = alchemyapi.keywords('url', url)
-    if response['status'] == 'OK':
-        #print response
-        for kw in response['keywords']:
-            if kw['relevance'] > 0.8 :
-                keywords.append(kw['text'].encode('utf-8'))
-    else:
-        print('Error in keyword extaction call: ', response['statusInfo'])
 
     features = {
         'text_length': len(text.split()),
