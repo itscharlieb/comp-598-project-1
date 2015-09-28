@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ###############################################
 ### COMP 598 : Project #1                   ###
 ### ---------------------					###
@@ -7,9 +9,11 @@
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
+"""
+This class parses URL to grab some features about a website.
+"""
 
-import json
-import requests
+from alchemyapi.alchemyapi import AlchemyAPI
 
 #Alchemy API key
 #Access to:
@@ -17,33 +21,71 @@ import requests
 #	Technical email support
 #	All of our text and image analysis APIs
 APIKEY = "1696ca287e5dc06b6ecb340719f98540352f3815"
+# Create the AlchemyAPI Object
+alchemyapi = AlchemyAPI()
 
+
+"""
+Retrieve features according to a given URL by using the AlchemyAPI.
+@param url - the url to be parsed.
+@return stats of given url as a dictionary
+{
+    text_length: int
+    title_length: int
+    numOutgoingUrls: int
+    numKeywords: int
+## TODO? ##
+    numKeywordRepeatsInDoc: int
+    numKeywordRepeatsInTitles: int
+    semanticRelevance: int
+    numImages: int
+    numVideos: int
+}
+"""
 def parseUrl(url):
-	"""
-	@param url to be parsed
-	@return stats of given url as a dictionary
-	{
-		storyId: int
-		length: int
-		numKeywordRepeatsInDoc: int
-		numKeywordRepeatsInTitles: int
-		numOutgoingUrls: int
-		semanticRelevance: int
-		numImages: int
-		numVideos: int
-	}
-	"""
 
-def parseStory(story):
-	"""
-	@param story dictionary
-	@return stats of given story as dictionary
-	"""
+    print('Processing url: ', url)
+
+    ## Get the text of the article (include links)
+    text = ""
+    links = 0
+    response = alchemyapi.text('url', url, {'extractLinks':1})
+    if response['status'] == 'OK':
+        #print response
+        text = response['text'].encode('utf-8')
+        links = text.count("<a href=")
+    else:
+        print('Error in text extraction call: ', response['statusInfo'])
+
+    ## Get the title of the article
+    title = ""
+    response = alchemyapi.title('url', url)
+    if response['status'] == 'OK':
+        #print response
+        title = response['title'].encode('utf-8')
+    else:
+        print('Error in title extraction call: ', response['statusInfo'])
+
+    ## Get the keywords of the article (with relevance > 0.8)
+    keywords = []
+    response = alchemyapi.keywords('url', url)
+    if response['status'] == 'OK':
+        #print response
+        for kw in response['keywords']:
+            if kw['relevance'] > 0.8 :
+                keywords.append(kw['text'].encode('utf-8'))
+    else:
+        print('Error in keyword extaction call: ', response['statusInfo'])
+
+    features = {
+        'text_length': len(text.split()),
+        'title_length': len(title.split()),
+        'numOutgoingUrls': links,
+        'numKeywords': len(keywords)
+    }
+
+    return features
 
 
-def main():
+print parseUrl('http://www.racecar-engineering.com/cars/porsche-919/')
 
-
-
-if name == __main__:
-	main()
