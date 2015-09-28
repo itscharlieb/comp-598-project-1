@@ -1,10 +1,11 @@
-import logging
-from gensim import corpora, models, similarities
+class MyCorpus(object):
+    def __iter__(self):
+        """
+        for line in open('mycorpus.txt'):
+	        # assume there's one document per line, tokens separated by whitespace
+	        yield dictionary.doc2bow(line.lower().split())
+		"""
 
+	    for line in articleDictionary:
+	    	
 
-"""
-- tokenize each title, remove words that appear only once
-- lemmatize words in title
-- convert tokenized documents to vectors
-- perform some sort of indexing algorithm, lsi or tdidf
-"""

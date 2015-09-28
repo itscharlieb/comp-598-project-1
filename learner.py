@@ -3,7 +3,7 @@
 ### ---------------------					###
 ### Authors:                                ###
 ###  + Nicolas Angelard-Gontier - 260532513 ###
-###  + Genevieve Fried - #########          ###
+###  + Genevieve Fried - 260564432          ###
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
@@ -40,12 +40,15 @@ def readData(path):
                 url = row[0]                                    # URL is at the 1st column.
                 timedelta = float(row[1])                       # time delta is at the 2nd column.
                 features = map(float,row[2:num_features-1])     # features are from 3rd column to 60th column.
+                # skip features 6,19-20,22-23,25-26,28-29,31-37,51-52,54-55.
+                features = features[:6]+features[7:19]+features[21:22]+features[24:25]+features[27:28]+features[30:31]+features[38:51]+features[53:54]+features[56:]
                 target = [float(row[num_features-1])]           # target feature is at the 61st column.
 
                 data.append((url, timedelta, features, target)) # add the tuple for this example.
 
             example=example+1 # increment example counter
 
+    random.shuffle(data)
     return data
 
 
@@ -91,6 +94,7 @@ example of partitions: [
 ]
 """
 def multiPartition(data, k):
+    print "Dividing the data into %d subsets..." % k
 
     size = len(data) / k # size is the subset size.
 
@@ -189,13 +193,15 @@ def multiTrain(trainFunc, partitions):
     errors = []
     print "Training %d times..." % len(partitions)
     for i in range(len(partitions)):    # for each subset of data:
+        print "    %d / %d" % (i, len(partitions)-1)
         testingData = partitions[i]     # the testing data is one subset.
         trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
         trainingData = customFlat(trainingData)          # merge all subsets into one big training data.
         weights.append(train(trainFunc, trainingData).tolist()) # get the weights learned by this training data.
         errors.append(squaredError(weights[-1], testingData))   # get the error of those weights on the testing data.
 
-    return averageWeights(weights), crossValidation(errors)
+    #return averageWeights(weights), crossValidation(errors)
+    return None, crossValidation(errors)
 
 
 
