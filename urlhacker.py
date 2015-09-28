@@ -81,5 +81,5 @@ def parseUrl(url):
     return features
 
 
-print parseUrl('http://www.racecar-engineering.com/cars/porsche-919/')
+#print parseUrl('http://www.racecar-engineering.com/cars/porsche-919/')
 

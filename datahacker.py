@@ -21,27 +21,14 @@ from urlhacker import parseUrl
 
 
 #necessary attributes to consider an item as a valid story
-requiredSoryAttributes = [
+requiredStoryAttributes = [
     'url',
     'id',
     'title',
     'type',
     'by',
     'time',
-    'descendants'
-    'score',
-]
-
-features = [
-    'url',
-    'title',
-    'userKarma',
-    'numComments'
-    'year',
-    'month',
-    'hour',
-    'isWeekday',
-    'isWeekend',
+    'descendants',
     'score'
 ]
 
@@ -55,7 +42,7 @@ Validity is determined by testing the item for containing a set of features.
 def filterStories(items):
     return [story for story in items if all(map(lambda attribute: attribute in story, requiredStoryAttributes))]
 
-def isWeekday(time):
+def weekday(time):
     return False
 
 """
@@ -63,20 +50,56 @@ def isWeekday(time):
 """
 def parseTime(unixTime):
     time = datetime.datetime.fromtimestamp(int(unixTime))
-    weekday = isWeekday(time)
+    day = time.strftime("%A") #returns the day of week of the given datetime
+
+    isMon = 1 if day == 'Monday' else 0
+    isTue = 1 if day == 'Tuesday' else 0
+    isWed = 1 if day == 'Wednesday' else 0
+    isThu = 1 if day == 'Thursday' else 0
+    isFri = 1 if day == 'Friday' else 0
+    isSat = 1 if day == 'Saturday' else 0
+    isSun = 1 if day == 'Sunday' else 0
 
     return [
         time.year,
         time.month,
+        time.day,
         time.hour,
-        weekday,
-        (not weekday)
+        isMon,
+        isTue,
+        isWed,
+        isThu,
+        isFri,
+        isSat,
+        isSun
     ]
+
 
 """
 """
 def parseYear(unixTime):
     return datetime.datetime.fromtimestamp(int(unixTime)).year
+
+
+"""
+"""
+def authorFeatures(author):
+    return [
+        author['karma'],
+        len(author['submitted']) if 'submitted' in author else 0,
+        parseYear(author['created'])
+    ]
+
+
+"""
+"""
+def storyFeatures(story):
+    features = [
+        story['url'],
+        story['descendants']
+    ]
+    features.extend(parseTime(story['time'])) #relevant time data
+    return features
 
 
 """ ==> TODO <==
@@ -86,29 +109,15 @@ Grabs features for a given story (in json format)
 @return - an array of features for the given story.
 """
 def grabFeatures(story, users):
-    if(story['by'] not in users):
-        raise Error("Could not find information on the user.")
-    author = users[story['by']]
+    author = story['by']
+    if(author not in users):
+        raise ValueError("Could not find information on author of the story.")
 
     features = []
-
-    #story info
-    features.append(story['url'])
-    features.append(story['title'])
-    features.append(story['descendants']) #number of comments
-
-    #author info
-    features.append(author['karma'])
-    features.append(parseYear(author('created')))
-    features.append( #number of stories added by author
-        len(author['submitted']) if 'submitted' in author else 0
-    )
-
-    #url info
-    urlFeatures = parseUrl(story)
-
-    # add features to the array in the same order as in the CSV file.
-    return features.extend(urlFeatures)
+    features.extend(storyFeatures(story))
+    features.extend(authorFeatures(users[author]))
+    #features.extend(parseUrl(story))
+    return features
 
 
 """ ==> TODO <==
@@ -127,10 +136,10 @@ def extractFeatures(items):
     for story in filterStories(items):
         try:
             storyFeatures = grabFeatures(story)
-        except (StoryException):
-
+        except ValueError as e:
+            print e
         
-        features.append(storyFeatures)
+    features.append(storyFeatures)
     return features
 
 
@@ -145,6 +154,6 @@ def createFile(data):
             writer.writerow(row)
 
 
-createFile(extractFeatures())
+#createFile(extractFeatures())
 
 
