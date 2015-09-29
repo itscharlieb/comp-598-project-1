@@ -132,9 +132,9 @@ example of features: [
     [&&&, ###, ###, ..., ###] <-- feature set for story #n
 ]
 """
-def extractFeatures(items, users):
+def extractFeatures(stories, users):
     features = [['url', 'feature1', 'feature2']]
-    for story in filterStories(items):
+    for story in stories:
         try:
             featureList = grabFeatures(story, users)
             features.append(featureList)
