@@ -41,7 +41,8 @@ requiredStoryAttributes = [
 Validity is determined by testing the item for containing a set of features.
 """
 def filterStories(items):
-    return [story for story in items if all(map(lambda attribute: attribute in story, requiredStoryAttributes))]
+    return [story for story in items if all(map(lambda attribute: attribute in story and story[attribute]!='', requiredStoryAttributes))]
+
 
 def weekday(time):
     return False
