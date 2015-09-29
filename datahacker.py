@@ -141,7 +141,6 @@ def extractFeatures(items, users):
         except ValueError as e:
             print e
         
-    features.append(storyFeatures)
     return features
 
 
