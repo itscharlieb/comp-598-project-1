@@ -16,6 +16,7 @@ This file is responible for:
 """
 
 import csv
+import json
 import datetime
 from urlhacker import parseUrl
 
@@ -131,11 +132,12 @@ example of features: [
     [&&&, ###, ###, ..., ###] <-- feature set for story #n
 ]
 """
-def extractFeatures(items):
+def extractFeatures(items, users):
     features = [['url', 'feature1', 'feature2']]
     for story in filterStories(items):
         try:
-            storyFeatures = grabFeatures(story)
+            featureList = grabFeatures(story, users)
+            features.append(featureList)
         except ValueError as e:
             print e
         
@@ -154,6 +156,25 @@ def createFile(data):
             writer.writerow(row)
 
 
-#createFile(extractFeatures())
+def process():
+    #build user dictionary
+    userFile = open("data/cleanedusers.json")
+    users = {}
+    for line in userFile:
+        user = json.loads(line)
+        users[user['id']] = user
+
+    #build item list
+    itemFile = open("data/items100000.json")
+    items = []
+    for line in itemFile:
+        item = json.loads(line)
+        items.append(item)
+
+    stories = filterStories(items)
+    featureTable = extractFeatures(stories, users)
+    createFile(featureTable)
+
+process()
 
 
