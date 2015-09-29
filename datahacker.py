@@ -83,6 +83,7 @@ def parseYear(unixTime):
 
 
 """
+features: user karma, number of published stories, year user created
 """
 def authorFeatures(author):
     return [
@@ -93,11 +94,13 @@ def authorFeatures(author):
 
 
 """
+features: URL, #of comments, year, month, day, hour, isMon, isTue, isWed, isThu, isFri, isSat, isSun
 """
 def storyFeatures(story):
     features = [
         story['url'],
-        story['descendants']
+        len(story['title'].split()) if story['title'] else -1,
+        story['descendants'] if story['descendants'] > 0 else 0
     ]
     features.extend(parseTime(story['time'])) #relevant time data
     return features
@@ -112,12 +115,13 @@ Grabs features for a given story (in json format)
 def grabFeatures(story, users):
     author = story['by']
     if(author not in users):
-        raise ValueError("Could not find information on author of the story.")
+        raise ValueError("Could not find information on author of this story: "+story['url'])
 
     features = []
     features.extend(storyFeatures(story))
     features.extend(authorFeatures(users[author]))
     #features.extend(parseUrl(story))
+    features.append(story['score'])
     return features
 
 
@@ -133,7 +137,12 @@ example of features: [
 ]
 """
 def extractFeatures(stories, users):
-    features = [['url', 'feature1', 'feature2']]
+    features = [
+        ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
+        'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
+        'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
+        'user_karma', 'user_published_stories', 'year_user_created', 'score']
+    ]
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
