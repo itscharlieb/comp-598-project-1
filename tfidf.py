@@ -51,8 +51,11 @@ def tfidf(doc_bow, documents):
 @params tfidf_weight: pass in list of tuples of (id,tf-idf weights) from tfidf function above
 """
 def take_min(tfidf_weight):
-	for 
-
+	min_tfidf = 0.0
+	for tup in tfidf_weight:
+		if tup < min_tfidf:
+			min_tfidf = tup
+	return min_tfidf
 def take_max(tfidf_weight):
 
 def take_avg(tfidf_weight)

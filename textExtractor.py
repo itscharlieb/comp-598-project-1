@@ -32,7 +32,6 @@ def diffbot_api(request, token, url):
 
 	title = json_r['title']
 	text = json_r['text']
-	author = json_r['author']
 	sentiment = json_r['sentiment']
 	images = json_r['images']
 	links = json_r['links']
@@ -40,4 +39,4 @@ def diffbot_api(request, token, url):
 	num_of_im = len(images)
 	num_of_link = len(links)
 
-	return title, text, author, sentiment, num_of_im, num_of_link
+	return title, text, sentiment, num_of_im, num_of_link
