@@ -23,6 +23,10 @@ request = "http://api.diffbot.com/v3/article"
 types: text, title, html, author,  discussion
 """
 
+request = "http://api.diffbot.com/v3/article"
+token = "b78400cc0f6795ded5fa3d980d1348c6"
+url = "www.nytimes.com"
+
 def diffbot_api(request, token, url):
 
 	params= {'token':token, 'url' : url, 'fields': 'sentiment,links'}
@@ -34,6 +38,6 @@ def diffbot_api(request, token, url):
 	text = json_a['text']
 	sentiment = json_a['sentiment']
 	links = json_a['links']
-	
+
 	num_of_links = len(links)
 	return title, text, sentiment, num_of_links

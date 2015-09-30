@@ -22,6 +22,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
 from tfidf import *
 from urlparse import urlparse
+from urlparse import urljoin
 
 # api arguments
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
@@ -193,10 +194,10 @@ def website_Freq(list_of_urls):
     wFreq = {}
     total_count = len(list_of_urls)
     for url in list_of_urls:
-        parse = urlparse.urljoin(url,'/')
+        parse = urljoin(url,'/')
         wCount[(url, parse)] +=1.0
     for k,v in wCount.iteritems():
-        wFreq[k[1]] = (v/total_count)
+        wFreq[k[0]] = (v/total_count)
     return wFreq
 
 """
@@ -205,7 +206,6 @@ returns count of words in article or title
 """
 def count_words_string(text):
     tokens = []
-    #no_punct = text.translate(None, string.punctuation)
     tokens = word_tokenize(text)
     return len(tokens)
 
@@ -217,7 +217,7 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
-
+#single_diffbotapi_call(request, token, list_of_url)
 ##NOTE listofurls needs to be comprised from hackernewsapi
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
@@ -225,18 +225,17 @@ def single_diffbotapi_call(request, token, list_of_urls):
     # count number of words in text
     #sentiment analysis
     for url in list_of_urls:
-        ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
-        cw_title = count_words_string(ti)
+        ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
+        #cw_title = count_words_string(ti)
         cw_article = count_words_string(txt)
         sentiment = grab_sentiment_articles(sent)
-        features[url] = [cw_title, cw_article, sentiment,num_of_links]     #5features
-        print features, "HOLLA"
+        features[url] = [cw_article, sentiment,num_of_links]     #5features
         list_of_titles.append(ti)        # need for semantic relevance
+    wf = website_Freq(list_of_urls)
     """
     bp = basicParse(list_of_titles)
-    d2v = doc2vec(bp)
-    tfidf_r = tfidf(d2v,list_of_urls,bp)
-    wf = website_Freq(list_of_urls)
+    d2v = doc2vec(list_of_urls, bp)
+    tfidf_r = tfidf(d2v,bp)
     for url in features:
         features.append(wf[url])
         min_tf = take_min(tfidf_r[url])
@@ -245,8 +244,10 @@ def single_diffbotapi_call(request, token, list_of_urls):
         features.append(min_tf)
         features.append(max_tf)
         features.append(avg_tf)
-        features.append(wf[url])
     """
+    for url,data in features.iteritems():
+        if wf[url]:
+            features[url].append(wf[url])
     return features  
 
 
