@@ -147,11 +147,11 @@ example of features: [
 """
 def extractFeatures(stories, users):
     features = [
-        ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
+        ['url', 'title_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
         'user_karma', 'user_published_stories', 'year_user_created',
-        'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7',
+        'article_length', 'sentiment', 'num_of_links', 'frequency_of_domain',
         'score']
     ]
 
@@ -159,11 +159,11 @@ def extractFeatures(stories, users):
     urls = []
     for s in stories:
         urls.append(re.split(",|;", s['url'])[0])
-    parsedURLFeatures = {}# single_diffbotapi_call(request, token, urls)
+    parsedURLFeatures = single_diffbotapi_call(request, token, urls)
     """
     parsedURLFeatures = {
-        'url': [f1, f2, f3, ...],
-        'url': [f1, f2, f3, ...],
+        'url': [article_length, sentiment, #of links, freq of domain],
+        'url': [...],
         ...
     }
     """
@@ -172,17 +172,10 @@ def extractFeatures(stories, users):
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
-
-            print story['url'], "hello"
             if story['url'] and parsedURLFeatures[story['url']]:
                 featureList.extend(parsedURLFeatures[story['url']])
-                print story['url'], "bonjour"
             else:
-                featureList.extend([0,0,0,0,0,0,0])
-
-            #featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
-            featureList.extend([0,0,0,0,0,0,0])
-
+                featureList.extend([0,0,0,0])
             featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
