@@ -24,7 +24,7 @@ import textExtractor as TE
 # api arguments
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
 diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
-#diffbot_token3 = CHARLIE B'S TOKEN
+diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
 
 request = "http://api.diffbot.com/v3/article"
 
@@ -160,42 +160,6 @@ def extractFeatures(stories, users):
         
     return features
 
-
-"""
-Create a csv file with given data
-@param data - a 2D array returned by the extractFeatures() function.
-"""
-def createFile(data):
-    with open('./data/stories.csv', 'wb') as csvfile:
-        writer = csv.writer(csvfile)
-        for row in data:
-            writer.writerow(row)
-
-
-def process():
-    #build user dictionary
-    userFile = open("data/cleanedusers.json")
-    users = {}
-    for line in userFile:
-        user = json.loads(line)
-        users[user['id']] = user
-
-    #build item list
-    itemFile = open("data/items100000.json")
-    items = []
-    for line in itemFile:
-        item = json.loads(line)
-        items.append(item)
-
-    stories = filterStories(items)
-    featureTable = extractFeatures(stories, users)
-    createFile(featureTable)
-
-process()
-
-
-##################################
-## more features
 """
 Features:
 - frequency of an author amongst our articles
@@ -238,10 +202,10 @@ def website_Freq(listofurls):
 
 
 """
-returns count of words in article
+returns count of words in article or title
 @param article text extracted from diffbot api
 """
-def count_word_article(text):
+def count_words_string(text):
     tokens = []
     no_punct = text.translate(None, string.punctuation)
     tokens = word_tokenize(no_punct)
@@ -255,9 +219,6 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
-def count_word_title(title):
-    return len(title)
-
 def grab_diffbotapi_objs(url):
     ti,txt,a,sent = TTE.diffbot_api(request, diffbot_token, url)
     return ti,txt,a,sent
@@ -268,7 +229,7 @@ def grab_diffbotapi_objs(url):
 
 
 ##NOTE listofurls needs to be comprised from hackernewsapi
-def wrapper_function(listofurls):
+def single_diffbotapi_call(listofurls):
     masterValue = []
     listofauthors=[]
     listofwebsites=[]
@@ -279,12 +240,12 @@ def wrapper_function(listofurls):
     # count number of words in text
     #sentiment analysis
     for url in listofurls:
-        ti,txt,a,sent,len_image = grab_diffbotapi_objs(url)
-        cwtitle = count_word_title(ti)
-        cwarticle = count_word_article( txt)
+        ti,txt,a,sent,num_of_image, num_of_link = grab_diffbotapi_objs(url)
+        cw_title = count_word_string(ti)
+        cw_article = count_word_article(txt)
         sentiment = grab_sentiment_analysis(sent)
 
-        masterValue[url] = [cwtitle,cwarticle,sentiment]
+        masterValue[url] = [cw_title, cw_article,sentiment]
 
         listofauthors.append(a)
         listofwebsites.append(url)
@@ -293,8 +254,47 @@ def wrapper_function(listofurls):
     af = author_Freq(listofauthors)
     wf = website_Freq(listofwebsites)
 
-    return masterValue, af, wf, listoftitles
+    return masterValue, af, wf, listoftitles, num_of_image, num_of_link
 
 
+################## END OF FEATURES LIST ##################
 
-    ### how to input 
+"""
+Create a csv file with given data
+@param data - a 2D array returned by the extractFeatures() function.
+"""
+def createFile(data):
+    with open('./data/stories.csv', 'wb') as csvfile:
+        writer = csv.writer(csvfile)
+        for row in data:
+            writer.writerow(row)
+
+
+def process():
+    #build user dictionary
+    userFile = open("data/cleanedusers.json")
+    users = {}
+    for line in userFile:
+        user = json.loads(line)
+        users[user['id']] = user
+
+    #build item list
+    itemFile = open("data/items100000.json")
+    items = []
+    for line in itemFile:
+        item = json.loads(line)
+        items.append(item)
+    urls = []
+    for s in stories:
+        urls.append(s['url'].split(";")[0])
+    stories = filterStories(items)
+    featureTable = extractFeatures(stories, users)
+    createFile(featureTable)
+
+    return urls
+
+list_of_urls = process()
+
+
+##################################
+## more features

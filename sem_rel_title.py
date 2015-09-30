@@ -2,7 +2,7 @@ import parsingHelp
 import datahacker
 
 listofURLS = listofurls()
-x,y,z,listoftitles = wrapperfunction(listofURLS)
+x,y,z,listoftitles = single_diffbotapi_call(listofURLS)
 
 
 for url in listofURLS
