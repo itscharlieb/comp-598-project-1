@@ -149,7 +149,7 @@ example of features: [
 """
 def extractFeatures(stories, users):
     features = [
-        ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
+        ['url', 'title_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
         'user_karma', 'user_published_stories', 'year_user_created',
