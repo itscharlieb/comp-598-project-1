@@ -149,11 +149,11 @@ example of features: [
 """
 def extractFeatures(stories, users):
     features = [
-        ['url', 'title_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
+        ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
         'user_karma', 'user_published_stories', 'year_user_created',
-        'article_length', 'sentiment', 'num_of_links', 'frequency_of_domain',
+        'article_length', 'sentiment', 'num_of_links', 'min_tfidf', 'max_tfidf', 'avg_tfidf', 'freq_of_domain',
         'score']
     ]
 
@@ -170,10 +170,9 @@ def extractFeatures(stories, users):
     print parsedURLFeatures
     """
     parsedURLFeatures = {
-        'url': [article_length, sentiment, #of links, freq of domain, ],
+        'url': [article_length, sentiment, #of links, min_tfidf, max_tfidf, avg_tfidf, freq of domain],
         'url': [...],
         ...
-    }
     """
     print "done with the API calls."
 
@@ -225,13 +224,9 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
-#single_diffbotapi_call(request, token, list_of_url)
-##NOTE listofurls needs to be comprised from hackernewsapi
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
-    # count number of words in text
-    #sentiment analysis
     for url in list_of_urls:
         try:
             ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
@@ -242,8 +237,9 @@ def single_diffbotapi_call(request, token, list_of_urls):
             list_of_titles.append(ti)        # need for semantic relevance
         except KeyError as e:
             print e
+
     wf = website_Freq(list_of_urls)
-    """
+    
     bp = basicParse(list_of_titles)
     d2v = doc2vec(list_of_urls, bp)
     tfidf_r = tfidf(d2v,bp)
@@ -252,16 +248,11 @@ def single_diffbotapi_call(request, token, list_of_urls):
         min_tf = take_min(tfidf_r[url])
         max_tf = take_max(tfidf_r[url])
         avg_tf = take_avg(tfidf_r[url])
-        features.append(min_tf)
-        features.append(max_tf)
-        features.append(avg_tf)
-    """
-    for url,data in features.iteritems():
-        if wf[url]:
-            features[url].append(wf[url])
+        features[url].append(min_tf)
+        features[url].append(max_tf)
+        features[url].append(avg_tf)   
+        features[url].append(wf[url])
     return features
-
-
 
 ################## END OF FEATURES LIST ##################
 
@@ -270,7 +261,7 @@ Create a csv file with given data
 @param data - a 2D array returned by the extractFeatures() function.
 """
 def createFile(data):
-    with open('./data/stories.csv', 'wb') as csvfile:
+    with open('./data/stories2.csv', 'wb') as csvfile:
         writer = csv.writer(csvfile)
         for row in data:
             writer.writerow(row)
