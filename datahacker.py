@@ -15,11 +15,11 @@ This file is responible for:
     - creating a CSV file with all the data examples and features
 """
 
-import json, csv, string, datetime
-from urlhacker import parseUrl
+import json, csv, string, datetime, urlparse
 from collections import defaultdict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
+from tfidf import *
 
 # api arguments
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
@@ -162,20 +162,18 @@ def extractFeatures(stories, users):
 
 
 """
-frequency of websites across articles
+returns dictionary of url and domain name frequency
 @param data - list of all urls
 """
 def website_Freq(list_of_urls):
     wCount = defaultdict(int)
     wFreq = {}
     total_count = len(list_of_urls)
-    for url in listofurls:
-        parse = url.split('.')
-        for pou in range(len(parse)):
-            if "www" in parse[pou]:
-                wCount[parse[pou+1]] +=1.0
+    for url in list_of_urls:
+        parse = urlparse.urljoin(url,'/')
+        wCount[(url, parse)] +=1.0
     for k,v in wCount.iteritems():
-        wFreq[k] = (v/total_count)
+        wFreq[k[1]] = (v/total_count)
     return wFreq
 
 """
@@ -206,9 +204,8 @@ def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_websites=[]
     list_of_titles=[]
-
-    url_authors={}
-    url_websites={}
+    list_of_urls=[]
+    
     # count number of words in text
     #sentiment analysis
     for url in list_of_urls:
@@ -222,11 +219,23 @@ def single_diffbotapi_call(request, token, list_of_urls):
         features[url] = [cw_title, cw_article, sentiment, num_of_images, num_of_links]     #5features
 
         list_of_websites.append(url)
-        list_of_titles.append(ti)         # need for semantic relevance
+        list_of_titles.append(ti)        # need for semantic relevance
+        list_of_urls.append(url)
+    
+    bp = basicParse(list_of_titles)
+    d2v = doc2vec(bp)
+    
+
 
     wf = website_Freq(list_of_websites)       # 1 feature
+    tfidf = tfidf(d2v, bp)
 
-    return features, wf, list_of_titles     
+    for url in features:
+        features.append(wf[url])
+        features.append(tfidf[url])
+
+    return features  
+
 
 
 ################## END OF FEATURES LIST ##################
