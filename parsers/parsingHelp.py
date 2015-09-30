@@ -63,3 +63,11 @@ class Tokenize:
 		"""
 
 		corpus = [dictionary.doc2bow(text) for text in texts]
+
+		return corpus, new_doc
+
+		##look into not loading this into memory 
+
+	def tfidf(corpus):
+		tfidf = models.TfidfModel(corpus)	##initializing a model with docum
+

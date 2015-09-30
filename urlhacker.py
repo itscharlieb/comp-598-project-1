@@ -5,7 +5,7 @@
 ### ---------------------					###
 ### Authors:                                ###
 ###  + Nicolas Angelard-Gontier - 260532513 ###
-###  + Genevieve Fried - #########          ###
+###  + Genevieve Fried - 260564432          ###
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
@@ -14,13 +14,17 @@ This class parses URL to grab some features about a website.
 """
 
 from alchemyapi.alchemyapi import AlchemyAPI
+import re, pprint, urllib
+from nltk import word_tokenize
+from bs4 import BeautifulSoup
+
 
 #Alchemy API key
 #Access to:
 #	1,000 daily transactions
 #	Technical email support
 #	All of our text and image analysis APIs
-APIKEY = "1696ca287e5dc06b6ecb340719f98540352f3815"
+APIKEY = "http://www.slate.com/articles/arts/culturebox/2015/09/banned_books_week_no_one_bans_books_anymore_and_censorship_of_books_is_incredibly.single.html"
 # Create the AlchemyAPI Object
 alchemyapi = AlchemyAPI()
 
@@ -79,6 +83,11 @@ def parseUrl(url):
     }
 
     return features
+"""
+Extract html from our stories on the internet in order to perform feature analysis
+@param: url of the article online 
+"""
+
 
 
 #print parseUrl('http://www.racecar-engineering.com/cars/porsche-919/')

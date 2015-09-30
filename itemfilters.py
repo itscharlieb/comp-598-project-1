@@ -3,7 +3,7 @@
 ### ---------------------					###
 ### Authors:                                ###
 ###  + Nicolas Angelard-Gontier - 260532513 ###
-###  + Genevieve Fried - #########          ###
+###  + Genevieve Fried - 260564432          ###
 ###  + Charlie Bloomfield - 260520615       ###
 ###############################################
 
