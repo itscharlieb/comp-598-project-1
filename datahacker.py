@@ -26,7 +26,7 @@ diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,00
 diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
 diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
 
-request = "http://api.diffbot.com/v3/article"
+diffbotRequest = "http://api.diffbot.com/v3/article"
 
 #necessary attributes to consider an item as a valid story
 requiredStoryAttributes = [
@@ -113,6 +113,17 @@ def storyFeatures(story):
     features.extend(parseTime(story['time'])) #relevant time data
     return features
 
+"""
+@param story url
+@return list of features of the form 
+[
+    feat1,
+    feat2,
+    feat3
+]
+"""
+def urlFeatures(url):
+
 
 """ ==> TODO <==
 Grabs features for a given story (in json format)
@@ -128,7 +139,7 @@ def grabFeatures(story, users):
     features = []
     features.extend(storyFeatures(story))
     features.extend(authorFeatures(users[author]))
-    #features.extend(parseUrl(story))
+    features.extend(urlFeatures(story))
     features.append(story['score'])
     return features
 
@@ -199,8 +210,6 @@ def website_Freq(listofurls):
         wFreq[k] = (v/total_count)
     return wFreq
 
-
-
 """
 returns count of words in article or title
 @param article text extracted from diffbot api
@@ -224,13 +233,9 @@ def grab_diffbotapi_objs(url):
     return ti,txt,a,sent
 
 
-## returns dictionary of the type:
-## {url = [title count, text count, author frequency, sentiment analysis]}
-
-
 ##NOTE listofurls needs to be comprised from hackernewsapi
-def single_diffbotapi_call(listofurls, request, token):
-    masterValue = []
+def single_diffbotapi_call(listofurls, request, tokenIterator):
+    features = []
     listofauthors=[]
     listofwebsites=[]
     listoftitles=[]
@@ -240,21 +245,21 @@ def single_diffbotapi_call(listofurls, request, token):
     # count number of words in text
     #sentiment analysis
     for url in listofurls:
-        ti,txt,a,sent,num_of_image, num_of_link = TE.diffbot_api(request, token, url)
+        ti,txt,a,sent,num_of_image, num_of_link = TE.diffbot_api(request, tokenIterator.next(), url)
         cw_title = count_word_string(ti)
         cw_article = count_word_article(txt)
         sentiment = grab_sentiment_analysis(sent)
 
-        masterValue[url] = [cw_title, cw_article,sentiment]
+        features[url] = [cw_title, cw_article, sentiment, num_of_images, num_of_links]     #5features
 
         listofauthors.append(a)
         listofwebsites.append(url)
-        listoftitles.append(ti)
+        listoftitles.append(ti)         # need for semantic relevance
 
     af = author_Freq(listofauthors)
     wf = website_Freq(listofwebsites)
 
-    return masterValue, af, wf, listoftitles, num_of_image, num_of_link
+    return features, af, wf, listoftitles
 
 
 ################## END OF FEATURES LIST ##################
@@ -285,14 +290,10 @@ def process():
         item = json.loads(line)
         items.append(item)
 
-    urls = []
-    for story in stories:
-        urls.append(story['url'].split(";")[0])
-    
-
     stories = filterStories(items)
     featureTable = extractFeatures(stories, users)
     createFile(featureTable)
+
 
 class keyItr:
     def __init__(self, keys):
@@ -314,6 +315,7 @@ class keyItr:
             raise StopIteration()
 
 list_of_urls = process()
+single_diffbotapi_call(list_of_urls)
 
 
 ##################################

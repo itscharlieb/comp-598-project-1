@@ -1,3 +1,12 @@
+###############################################
+### COMP 598 : Project #1                   ###
+### ---------------------					###
+### Authors:                                ###
+###  + Nicolas Angelard-Gontier - 260532513 ###
+###  + Genevieve Fried - 260564432          ###
+###  + Charlie Bloomfield - 260520615       ###
+###############################################
+
 import logging, json
 from gensim import corpora, models, similarities
 from collections import defaultdict
@@ -15,9 +24,9 @@ class Tokenize:
 
 	# meta info = list of dictionaries
 	# data (string) = meta info we're interested in e.g. list of titles
-	def __init__(self, URL, data):
-		self.URL = URL
-		self.document = data
+	def __init__(self, data_instance, data_corpus):
+		self.data_instance = data_instance		#article title
+		self.data_corpus = data_corpus			# list of articles
 		self.tfidf_weight = 0
 """
 	def createDocuments(self):
