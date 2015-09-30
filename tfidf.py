@@ -31,7 +31,7 @@ def basicParse(documents):
 
 def doc2vec(parsedDocuments):
 	doc2vec_dict = {}
-	dictionary = corpora.Dictionary(parsedDocument)
+	dictionary = corpora.Dictionary(parsedDocuments)
 	for title in parsedDocuments:
 		doc_bow = dictionary.doc2bow(title.lower().split())			# bag of words vector
 		doc2vec_dict[title] = doc_bow

@@ -16,11 +16,12 @@ This file is responible for:
 """
 
 
-import json, csv, string, datetime, urlparse, re
+import json, csv, string, datetime, re
 from collections import defaultdict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
 from tfidf import *
+from urllib.parse import urlparse
 
 # api arguments
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
@@ -122,15 +123,7 @@ def storyFeatures(story):
     feat3
 ]
 """
-def urlFeatures(url):
 
-
-"""
-Grabs features for a given story (in json format)
-@param story - the dictionary object that represents a story.
-@param users - dictionary of users
-@return - an array of features for the given story.
-"""
 def grabFeatures(story, users):
     author = story['by']
     if author not in users:
@@ -180,7 +173,12 @@ def extractFeatures(stories, users):
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
-            featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
+            print story['url'], "hello"
+            if story['url'] and parsedURLFeatures[story['url']]:
+                featureList.extend(parsedURLFeatures[story['url']])
+                print story['url'], "bonjour"
+            else:
+                featureList.extend([0,0,0,0,0,0,0])
             featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
@@ -210,8 +208,8 @@ returns count of words in article or title
 """
 def count_words_string(text):
     tokens = []
-    no_punct = text.translate(None, string.punctuation)
-    tokens = word_tokenize(no_punct)
+    #no_punct = text.translate(None, string.punctuation)
+    tokens = word_tokenize(text)
     return len(tokens)
 
 """
@@ -230,37 +228,36 @@ def grab_diffbotapi_objs(url):
 ##NOTE listofurls needs to be comprised from hackernewsapi
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
-    list_of_websites=[]
     list_of_titles=[]
     list_of_urls=[]
-    
     # count number of words in text
     #sentiment analysis
+    print "hello"
     for url in list_of_urls:
-        
+        print "what the fuck"
         ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
-        cw_title = count_word_string(ti)
-        cw_article = count_word_string(txt)
+        cw_title = count_words_string(ti)
+        cw_article = count_words_string(txt)
         sentiment = grab_sentiment_articles(sent)
-
-        features[url] = [cw_title, cw_article, sentiment, num_of_images, num_of_links]     #5features
-
-        list_of_websites.append(url)
+        features[url] = [cw_title, cw_article, sentiment,num_of_links]     #5features
+        print features, "HOLLA"
         list_of_titles.append(ti)        # need for semantic relevance
         list_of_urls.append(url)
-    
+    """
     bp = basicParse(list_of_titles)
     d2v = doc2vec(bp)
-    
-
-
-    wf = website_Freq(list_of_websites)       # 1 feature
-    tfidf = tfidf(d2v, bp)
-
+    tfidf_r = tfidf(d2v,list_of_urls,bp)
+    wf = website_Freq(list_of_urls)
     for url in features:
         features.append(wf[url])
-        features.append(tfidf[url])
-
+        min_tf = take_min(tfidf_r[url])
+        max_tf = take_max(tfidf_r[url])
+        avg_tf = take_avg(tfidf_r[url])
+        features.append(min_tf)
+        features.append(max_tf)
+        features.append(avg_tf)
+        features.append(wf[url])
+    """
     return features  
 
 

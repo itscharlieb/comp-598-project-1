@@ -25,7 +25,7 @@ types: text, title, html, author,  discussion
 
 def diffbot_api(request, token, url):
 
-	params= {'token':diffbot_token, 'url' : url, 'fields': 'sentiment,links'}
+	params= {'token':token, 'url' : url, 'fields': 'sentiment,links'}
 	json_r = requests.get(request, params=params).json()
 	objs = json_r['objects']
 	json_r = objs[0]
@@ -33,10 +33,7 @@ def diffbot_api(request, token, url):
 	title = json_r['title']
 	text = json_r['text']
 	sentiment = json_r['sentiment']
-	images = json_r['images']
 	links = json_r['links']
-
-	num_of_im = len(images)
 	num_of_link = len(links)
 
-	return title, text, sentiment, num_of_im, num_of_link
+	return title, text, sentiment, num_of_link
