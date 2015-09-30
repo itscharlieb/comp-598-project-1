@@ -15,11 +15,18 @@ This file is responible for:
     - creating a CSV file with all the data examples and features
 """
 
-import csv
-import json
-import datetime
+import json, csv, string, datetime
 from urlhacker import parseUrl
+from collections import defaultdict
+from nltk.tokenize import word_tokenize, sent_tokenize
+import textExtractor as TE
 
+# api arguments
+diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
+diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
+#diffbot_token3 = CHARLIE B'S TOKEN
+
+request = "http://api.diffbot.com/v3/article"
 
 #necessary attributes to consider an item as a valid story
 requiredStoryAttributes = [
@@ -187,3 +194,107 @@ def process():
 process()
 
 
+##################################
+## more features
+"""
+Features:
+- frequency of an author amongst our articles
+- frequency of a website (e.g. nytimes, youtube) occurring
+"""
+
+
+"""
+frequency of authors across articles
+@param data - list of all authors
+"""
+def author_Freq(listofauthors):
+    aCount = defaultdict(int)
+    aFreq={}
+    total_count = len(listofauthors)
+    for author in listofauthors:
+        author.lower()      # lowercase (just in case)
+        aCount[author] +=1.0 
+    for k,v in aCount.iteritems():
+        aFreq[k] = float(v/total_count)
+    return aFreq
+
+"""
+frequency of websites across articles
+@param data - list of all urls
+"""
+def website_Freq(listofurls):
+    wCount = defaultdict(int)
+    wFreq = {}
+    total_count = len(listofurls)
+    for url in listofurls:
+        parse = url.split('.')
+        for pou in range(len(parse)):
+            if "www" in parse[pou]:
+                wCount[parse[pou+1]] +=1.0
+    for k,v in wCount.iteritems():
+        wFreq[k] = (v/total_count)
+    return wFreq
+
+
+
+"""
+returns count of words in article
+@param article text extracted from diffbot api
+"""
+def count_word_article(text):
+    tokens = []
+    no_punct = text.translate(None, string.punctuation)
+    tokens = word_tokenize(no_punct)
+    return len(tokens)
+
+"""
+inputs url, returns sentiment of url
+note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely positive)
+@param list of urls we want to grab the sentiment analysis of
+"""
+def grab_sentiment_articles(sentiment):
+    return sentiment
+
+def count_word_title(title):
+    return len(title)
+
+def grab_diffbotapi_objs(url):
+    ti,txt,a,sent = TTE.diffbot_api(request, diffbot_token, url)
+    return ti,txt,a,sent
+
+
+## returns dictionary of the type:
+## {url = [title count, text count, author frequency, sentiment analysis]}
+
+
+##NOTE listofurls needs to be comprised from hackernewsapi
+def wrapper_function(listofurls):
+    masterValue = []
+    listofauthors=[]
+    listofwebsites=[]
+    listoftitles=[]
+
+    url_authors={}
+    url_websites={}
+    # count number of words in text
+    #sentiment analysis
+    for url in listofurls:
+        ti,txt,a,sent = grab_diffbotapi_objs(url)
+        cwtitle = count_word_title(ti)
+        cwarticle = count_word_article( txt)
+        sentiment = grab_sentiment_analysis(sent)
+
+        masterValue[url] = [cwtitle,cwarticle,sentiment]
+
+        listofauthors.append(a)
+        listofwebsites.append(url)
+        listoftitles.append(ti)
+
+    af = author_Freq(listofauthors)
+    wf = website_Freq(listofwebsites)
+
+    return masterValue, af, wf, listoftitles
+
+
+
+    ### how to input 
