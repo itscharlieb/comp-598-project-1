@@ -29,12 +29,16 @@ def basicParse(documents):
 @params parsedDocument: documents that have been parsed by basicParse
 """
 
-def doc2vec(parsedDocuments):
+def doc2vec(urls,parsedDocuments):
 	doc2vec_dict = {}
 	dictionary = corpora.Dictionary(parsedDocuments)
+	count = 0
 	for title in parsedDocuments:
+		sp = " "
+		title = sp.join(title)
 		doc_bow = dictionary.doc2bow(title.lower().split())			# bag of words vector
-		doc2vec_dict[title] = doc_bow
+		doc2vec_dict[urls[count]] = doc_bow
+		count=count+1
 	return doc2vec_dict
 
 """
@@ -42,15 +46,14 @@ returns a list of tf-idf weights for each of the words in the title as they're r
 @params doc_bow: bag of word vector for specific title
 @params documents: list of titles to train our model
 """
-def tfidf(doc2vec_dict, urls, parsedDocuments):	
+def tfidf(doc2vec_dict, parsedDocuments):	
 	#corpus = listoftitles
 	tfidf_weights_dict = {}
 	corpus_tfidf = models.TfidfModel(parsedDocuments)	##initializing a model with docum
 	
-	for title,doc_bow in doc2vec_dict.iteritems():
-		for url in urls:
+	for url,doc_bow in doc2vec_dict.iteritems():
 			tfidf_weight = corpus_tfidf[doc_bow]
-			tfidf_weights_dict[urls] = tfidf_weight
+			tfidf_weights_dict[url] = tfidf_weight
 	return tfidf_weights_dict
 
 
