@@ -26,6 +26,7 @@ Python
 	csv
 	json
 	numpy
+	nltk
 
 -------------------------------------
 To install required python libraries:

@@ -103,7 +103,7 @@ subsets = multiPartition(given_data, 9911) #creates k subsets of equal size.
 print "There are %d subsets." % len(subsets)
 print "Each subset has %d examples." % len(subsets[0])
 #averageWeights, averageError = multiTrain(ols, new_subsets) # k-fold cross validation
-averageWeights, averageError = multiTrain(gradientDescent, subsets) # k-fold cross validation
+averageWeights, averageError = multiTrain(ols, subsets) # k-fold cross validation
 print averageError
 
 end = datetime.datetime.now()

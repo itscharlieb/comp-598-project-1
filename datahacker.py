@@ -15,7 +15,8 @@ This file is responible for:
     - creating a CSV file with all the data examples and features
 """
 
-import json, csv, string, datetime, urlparse
+
+import json, csv, string, datetime, urlparse, re
 from collections import defaultdict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
@@ -26,7 +27,7 @@ diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,00
 diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
 diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
 
-request = "http://api.diffbot.com/v3/article"
+diffbotRequest = "http://api.diffbot.com/v3/article"
 
 #necessary attributes to consider an item as a valid story
 requiredStoryAttributes = [
@@ -83,7 +84,6 @@ def parseTime(unixTime):
         isSun
     ]
 
-
 """
 """
 def parseYear(unixTime):
@@ -106,15 +106,26 @@ features: URL, #of comments, year, month, day, hour, isMon, isTue, isWed, isThu,
 """
 def storyFeatures(story):
     features = [
-        story['url'].split(';')[0] if story['url'] else 'N.A.', #remove weird formating after ';'
+        re.split(",|;", story['url'])[0] if story['url'] else 'N.A.', #remove weird formating after ';'
         len(story['title'].split()) if story['title'] else -1,
         story['descendants'] if story['descendants'] > 0 else 0
     ]
     features.extend(parseTime(story['time'])) #relevant time data
     return features
 
+"""
+@param story url
+@return list of features of the form 
+[
+    feat1,
+    feat2,
+    feat3
+]
+"""
+def urlFeatures(url):
 
-""" ==> TODO <==
+
+"""
 Grabs features for a given story (in json format)
 @param story - the dictionary object that represents a story.
 @param users - dictionary of users
@@ -122,18 +133,16 @@ Grabs features for a given story (in json format)
 """
 def grabFeatures(story, users):
     author = story['by']
-    if(author not in users):
+    if author not in users:
         raise ValueError("Could not find information on author of this story: "+story['url'])
 
     features = []
     features.extend(storyFeatures(story))
     features.extend(authorFeatures(users[author]))
-    #features.extend(parseUrl(story))
-    features.append(story['score'])
     return features
 
 
-""" ==> TODO <==
+"""
 Goes through the 100,000 items, and grab features for each of them.
 @return - a 2D array with line = array of feature values for 1 story.
 example of features: [
@@ -149,11 +158,30 @@ def extractFeatures(stories, users):
         ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
-        'user_karma', 'user_published_stories', 'year_user_created', 'score']
+        'user_karma', 'user_published_stories', 'year_user_created',
+        'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7',
+        'score']
     ]
+
+    print "extracting data from URLs with API calls..."
+    urls = []
+    for s in stories:
+        urls.append(re.split(",|;", s['url'])[0])
+    parsedURLFeatures = {}# single_diffbotapi_call(request, token, urls)
+    """
+    parsedURLFeatures = {
+        'url': [f1, f2, f3, ...],
+        'url': [f1, f2, f3, ...],
+        ...
+    }
+    """
+    print "done with the API calls."
+
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
+            featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
+            featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
             print e
@@ -211,7 +239,6 @@ def single_diffbotapi_call(request, token, list_of_urls):
     for url in list_of_urls:
         
         ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
-        
         cw_title = count_word_string(ti)
         cw_article = count_word_string(txt)
         sentiment = grab_sentiment_articles(sent)
@@ -265,18 +292,10 @@ def process():
     for line in itemFile:
         item = json.loads(line)
         items.append(item)
-    urls = []
-    for s in stories:
-        urls.append(re.split(",|;", s['url']))
+
     stories = filterStories(items)
     featureTable = extractFeatures(stories, users)
     createFile(featureTable)
 
-    return urls
 
-list_of_urls = process()
-
-
-
-##################################
-## more features
+process()
