@@ -21,7 +21,7 @@ from collections import defaultdict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
 from tfidf import *
-from urllib.parse import urlparse
+from urlparse import urlparse
 
 # api arguments
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
@@ -121,7 +121,7 @@ Grabs features for a given story (in json format)
 @param users - dictionary of users
 @return - an array of features for the given story.
 """
->>>>>>> 6ac2168ef9546502631dbeebadd1bb146c7154bc
+
 def grabFeatures(story, users):
     features = []
     features.extend(storyFeatures(story))
@@ -224,21 +224,14 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
-def grab_diffbotapi_objs(url):
-    ti,txt,a,sent = TTE.diffbot_api(request, diffbot_token, url)
-    return ti,txt,a,sent
-
 
 ##NOTE listofurls needs to be comprised from hackernewsapi
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
-    list_of_urls=[]
     # count number of words in text
     #sentiment analysis
-    print "hello"
     for url in list_of_urls:
-        print "what the fuck"
         ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
         cw_title = count_words_string(ti)
         cw_article = count_words_string(txt)
@@ -246,7 +239,6 @@ def single_diffbotapi_call(request, token, list_of_urls):
         features[url] = [cw_title, cw_article, sentiment,num_of_links]     #5features
         print features, "HOLLA"
         list_of_titles.append(ti)        # need for semantic relevance
-        list_of_urls.append(url)
     """
     bp = basicParse(list_of_titles)
     d2v = doc2vec(bp)

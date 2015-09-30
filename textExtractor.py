@@ -28,12 +28,12 @@ def diffbot_api(request, token, url):
 	params= {'token':token, 'url' : url, 'fields': 'sentiment,links'}
 	json_r = requests.get(request, params=params).json()
 	objs = json_r['objects']
-	json_r = objs[0]
+	json_a = objs[0]
 
-	title = json_r['title']
-	text = json_r['text']
-	sentiment = json_r['sentiment']
-	links = json_r['links']
-	num_of_link = len(links)
-
-	return title, text, sentiment, num_of_link
+	title = json_a['title']
+	text = json_a['text']
+	sentiment = json_a['sentiment']
+	links = json_a['links']
+	
+	num_of_links = len(links)
+	return title, text, sentiment, num_of_links
