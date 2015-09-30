@@ -27,6 +27,7 @@ Python
 	json
 	numpy
 	nltk
+	gensim
 
 -------------------------------------
 To install required python libraries:
