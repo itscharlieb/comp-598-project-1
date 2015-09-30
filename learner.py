@@ -262,37 +262,45 @@ returns the set of weights that define the gradient descent estimate over the pa
 def ErrW(wVec, xVec, yVec):
 
     p1 = xVec.transpose() * xVec
-    p2 = p1 * wVec.transpose()
+    p2 = p1 * wVec
     p3 = xVec.transpose() * yVec
     p4 = p2-p3
     return np.multiply(2.0, p4)
 
-    #TOD0: Look into wolfe conditions or robin monroe's sequence for alpha
 def gradientDescent(trainingData):
 
     ## constant values
-    alpha = random.random()  #to be replaced later with a more sophisticated alg
-    epsilon = 0.0001    
+    #alpha = 0.000000000000000000001
+    alpha = 1
+    epsilon = 0.0001
     X,Y = generateMatrixes(trainingData)
-    lenM = X.shape[1]
+    lenM = X.shape[1] # lenM = #of features
 
    # initial construction of gradient descent alg
-    tmp = [random.random() for x in range(lenM)]
+    tmp = [[random.random()] for x in range(lenM)]
     wCrt = np.matrix(tmp)
     aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
     wNext = wCrt - aErr
+    alpha = 1 / (alpha+1)
 
     ## gradient descent
-    while( np.linalg.norm(wNext - wCrt) > epsilon):
-        print np.linalg.norm(wNext - wCrt)
-        wCrt = wNext
-        aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
-        wNext = wCrt - aErr
-        
+    again = True
+    while again:
+        #if reduce(lambda x,y: x and y , np.absolute(aErr) < epsilon):
+        if np.absolute(np.linalg.norm(aErr)) < epsilon:
+            #print np.absolute(aErr)
+            #print np.absolute(np.linalg.norm(aErr))
+            again = False
+            break
+        else:
+            #print np.absolute(aErr)
+            #print np.absolute(np.linalg.norm(aErr))
+            wCrt = wNext
+            aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
+            wNext = wCrt - aErr
+            alpha = 1 / (alpha+1)   
 
-        if np.linalg.norm(wCrt) == np.linalg.norm(wNext):
-            return wNext
-    return wNext    
+    return wNext
 
 """
 Calculates the squared error made by a given set of weights on a given test data.
@@ -318,3 +326,5 @@ def squaredError(weights, testData):
         error = error + (target - prediction)**2
 
     return error
+
+
