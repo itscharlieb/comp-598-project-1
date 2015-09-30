@@ -159,8 +159,13 @@ def extractFeatures(stories, users):
 
     print "extracting data from URLs with API calls..."
     urls = []
+    i=0
     for s in stories:
+        if i<2000 :
             urls.append(re.split(",|;", s['url'])[0])
+            i=i+1
+        else:
+            break
     parsedURLFeatures = single_diffbotapi_call(request, diffbot_token2, urls)
     print parsedURLFeatures
     """
@@ -222,7 +227,9 @@ def grab_sentiment_articles(sentiment):
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
+    i=0
     for url in list_of_urls:
+        print i
         try:
             ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
             #cw_title = count_words_string(ti)
@@ -232,6 +239,7 @@ def single_diffbotapi_call(request, token, list_of_urls):
             list_of_titles.append(ti)        # need for semantic relevance
         except KeyError as e:
             print e
+        i=i+1
 
     update_urls = [url for url in features]
 
