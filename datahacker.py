@@ -25,7 +25,7 @@ diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,00
 diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
 diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
 
-request = "http://api.diffbot.com/v3/article"
+diffbotRequest = "http://api.diffbot.com/v3/article"
 
 #necessary attributes to consider an item as a valid story
 requiredStoryAttributes = [
@@ -110,6 +110,17 @@ def storyFeatures(story):
     ]
     features.extend(parseTime(story['time'])) #relevant time data
     return features
+
+"""
+@param story url
+@return list of features of the form 
+[
+    feat1,
+    feat2,
+    feat3
+]
+"""
+def urlFeatures(url):
 
 
 """
@@ -229,7 +240,6 @@ def single_diffbotapi_call(request, token, list_of_urls):
     for url in list_of_urls:
         
         ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
-        
         cw_title = count_word_string(ti)
         cw_article = count_word_string(txt)
         sentiment = grab_sentiment_articles(sent)
@@ -271,12 +281,10 @@ def process():
     for line in itemFile:
         item = json.loads(line)
         items.append(item)
-    
+
     stories = filterStories(items)
     featureTable = extractFeatures(stories, users)
     createFile(featureTable)
 
+
 process()
-
-
-
