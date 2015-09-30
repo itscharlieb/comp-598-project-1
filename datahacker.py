@@ -25,6 +25,7 @@ from urlparse import urlparse
 from urlparse import urljoin
 
 # api arguments
+request = "http://api.diffbot.com/v3/article"
 diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
 diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
 diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
@@ -121,6 +122,7 @@ Grabs features for a given story (in json format)
 @param story - the dictionary object that represents a story.
 @param users - dictionary of users
 @return - an array of features for the given story.
+
 """
 
 def grabFeatures(story, users):
@@ -128,11 +130,10 @@ def grabFeatures(story, users):
     features.extend(storyFeatures(story))
     author = story['by']
     if author not in users:
-        print "Could not find information on author of this story: "+story['url']
-        features.extend([0,0,0])
+        raise ValueError("Could not find information on author of this story: "+story['url'])
     else :
         features.extend(authorFeatures(users[author]))
-    return features
+        return features
 
 
 """
@@ -158,12 +159,18 @@ def extractFeatures(stories, users):
 
     print "extracting data from URLs with API calls..."
     urls = []
+    i = 0
     for s in stories:
-        urls.append(re.split(",|;", s['url'])[0])
-    parsedURLFeatures = single_diffbotapi_call(request, token, urls)
+        if i<10:
+            urls.append(re.split(",|;", s['url'])[0])
+        else:
+            break
+        i=i+1
+    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token1, urls)
+    print parsedURLFeatures
     """
     parsedURLFeatures = {
-        'url': [article_length, sentiment, #of links, freq of domain],
+        'url': [article_length, sentiment, #of links, freq of domain, ],
         'url': [...],
         ...
     }
@@ -173,13 +180,15 @@ def extractFeatures(stories, users):
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
-            if story['url'] and parsedURLFeatures[story['url']]:
+            if len(parsedURLFeatures)!=0 and story['url'] in parsedURLFeatures:
                 featureList.extend(parsedURLFeatures[story['url']])
             else:
-                featureList.extend([0,0,0,0])
+                print "skip this story: %s" % story['url']
+                continue
             featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
+            print "skip this story: %s" % story['url']
             print e
         
     return features
@@ -205,8 +214,7 @@ returns count of words in article or title
 @param article text extracted from diffbot api
 """
 def count_words_string(text):
-    tokens = []
-    tokens = word_tokenize(text)
+    tokens = text.split()
     return len(tokens)
 
 """
@@ -225,12 +233,15 @@ def single_diffbotapi_call(request, token, list_of_urls):
     # count number of words in text
     #sentiment analysis
     for url in list_of_urls:
-        ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
-        #cw_title = count_words_string(ti)
-        cw_article = count_words_string(txt)
-        sentiment = grab_sentiment_articles(sent)
-        features[url] = [cw_article, sentiment,num_of_links]     #5features
-        list_of_titles.append(ti)        # need for semantic relevance
+        try:
+            ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
+            #cw_title = count_words_string(ti)
+            cw_article = count_words_string(txt)
+            sentiment = grab_sentiment_articles(sent)
+            features[url] = [cw_article, sentiment,num_of_links]     #5features
+            list_of_titles.append(ti)        # need for semantic relevance
+        except KeyError as e:
+            print e
     wf = website_Freq(list_of_urls)
     """
     bp = basicParse(list_of_titles)
@@ -248,7 +259,7 @@ def single_diffbotapi_call(request, token, list_of_urls):
     for url,data in features.iteritems():
         if wf[url]:
             features[url].append(wf[url])
-    return features  
+    return features
 
 
 
