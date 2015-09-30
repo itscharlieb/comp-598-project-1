@@ -171,36 +171,15 @@ def extractFeatures(stories, users):
         
     return features
 
-"""
-Features:
-- frequency of an author amongst our articles
-- frequency of a website (e.g. nytimes, youtube) occurring
-"""
-
-
-"""
-frequency of authors across articles
-@param data - list of all authors
-"""
-def author_Freq(listofauthors):
-    aCount = defaultdict(int)
-    aFreq={}
-    total_count = len(listofauthors)
-    for author in listofauthors:
-        author.lower()      # lowercase (just in case)
-        aCount[author] +=1.0 
-    for k,v in aCount.iteritems():
-        aFreq[k] = float(v/total_count)
-    return aFreq
 
 """
 frequency of websites across articles
 @param data - list of all urls
 """
-def website_Freq(listofurls):
+def website_Freq(list_of_urls):
     wCount = defaultdict(int)
     wFreq = {}
-    total_count = len(listofurls)
+    total_count = len(list_of_urls)
     for url in listofurls:
         parse = url.split('.')
         for pou in range(len(parse)):
@@ -234,32 +213,30 @@ def grab_diffbotapi_objs(url):
 
 
 ##NOTE listofurls needs to be comprised from hackernewsapi
-def single_diffbotapi_call(listofurls, request, tokenIterator):
-    features = []
-    listofauthors=[]
-    listofwebsites=[]
-    listoftitles=[]
+def single_diffbotapi_call(request, token, list_of_urls):
+    features = {}
+    list_of_websites=[]
+    list_of_titles=[]
 
     url_authors={}
     url_websites={}
     # count number of words in text
     #sentiment analysis
-    for url in listofurls:
-        ti,txt,a,sent,num_of_image, num_of_link = TE.diffbot_api(request, tokenIterator.next(), url)
+    for url in list_of_urls:
+        
+        ti,txt,sent,num_of_images, num_of_links = TE.diffbot_api(request, token, url)
         cw_title = count_word_string(ti)
-        cw_article = count_word_article(txt)
-        sentiment = grab_sentiment_analysis(sent)
+        cw_article = count_word_string(txt)
+        sentiment = grab_sentiment_articles(sent)
 
         features[url] = [cw_title, cw_article, sentiment, num_of_images, num_of_links]     #5features
 
-        listofauthors.append(a)
-        listofwebsites.append(url)
-        listoftitles.append(ti)         # need for semantic relevance
+        list_of_websites.append(url)
+        list_of_titles.append(ti)         # need for semantic relevance
 
-    af = author_Freq(listofauthors)
-    wf = website_Freq(listofwebsites)
+    wf = website_Freq(list_of_websites)       # 1 feature
 
-    return features, af, wf, listoftitles
+    return features, wf, list_of_titles     
 
 
 ################## END OF FEATURES LIST ##################
@@ -289,7 +266,13 @@ def process():
     for line in itemFile:
         item = json.loads(line)
         items.append(item)
+<<<<<<< HEAD
 
+=======
+    urls = []
+    for s in stories:
+        urls.append(re.split(",|;", s['url']))
+>>>>>>> db4f11606cc7cb3940efb88cfce93a958da35cc0
     stories = filterStories(items)
     featureTable = extractFeatures(stories, users)
     createFile(featureTable)
@@ -315,7 +298,7 @@ class keyItr:
             raise StopIteration()
 
 list_of_urls = process()
-single_diffbotapi_call(list_of_urls)
+
 
 
 ##################################
