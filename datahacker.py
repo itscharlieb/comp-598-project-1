@@ -229,7 +229,7 @@ def grab_diffbotapi_objs(url):
 
 
 ##NOTE listofurls needs to be comprised from hackernewsapi
-def single_diffbotapi_call(listofurls):
+def single_diffbotapi_call(listofurls, request, token):
     masterValue = []
     listofauthors=[]
     listofwebsites=[]
@@ -240,7 +240,7 @@ def single_diffbotapi_call(listofurls):
     # count number of words in text
     #sentiment analysis
     for url in listofurls:
-        ti,txt,a,sent,num_of_image, num_of_link = grab_diffbotapi_objs(url)
+        ti,txt,a,sent,num_of_image, num_of_link = TE.diffbot_api(request, token, url)
         cw_title = count_word_string(ti)
         cw_article = count_word_article(txt)
         sentiment = grab_sentiment_analysis(sent)
@@ -284,14 +284,34 @@ def process():
     for line in itemFile:
         item = json.loads(line)
         items.append(item)
+
     urls = []
-    for s in stories:
-        urls.append(s['url'].split(";")[0])
+    for story in stories:
+        urls.append(story['url'].split(";")[0])
+    
+
     stories = filterStories(items)
     featureTable = extractFeatures(stories, users)
     createFile(featureTable)
 
-    return urls
+class keyItr:
+    def __init__(self, keys):
+        self.i = 0
+        self.j = 0
+        self.keys = keys
+        self.limit = 30000
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        i += 1
+        j += 1
+        if self.i == len(keys):
+            i = 0
+            return keys[i]
+        elif self.j == limit:
+            raise StopIteration()
 
 list_of_urls = process()
 
