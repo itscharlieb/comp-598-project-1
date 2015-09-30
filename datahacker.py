@@ -279,7 +279,7 @@ def wrapper_function(listofurls):
     # count number of words in text
     #sentiment analysis
     for url in listofurls:
-        ti,txt,a,sent = grab_diffbotapi_objs(url)
+        ti,txt,a,sent,len_image = grab_diffbotapi_objs(url)
         cwtitle = count_word_title(ti)
         cwarticle = count_word_article( txt)
         sentiment = grab_sentiment_analysis(sent)
