@@ -41,7 +41,8 @@ requiredStoryAttributes = [
 Validity is determined by testing the item for containing a set of features.
 """
 def filterStories(items):
-    return [story for story in items if all(map(lambda attribute: attribute in story, requiredStoryAttributes))]
+    return [story for story in items if all(map(lambda attribute: attribute in story and story[attribute]!='', requiredStoryAttributes))]
+
 
 def weekday(time):
     return False
@@ -98,7 +99,7 @@ features: URL, #of comments, year, month, day, hour, isMon, isTue, isWed, isThu,
 """
 def storyFeatures(story):
     features = [
-        story['url'],
+        story['url'].split(';')[0] if story['url'] else 'N.A.', #remove weird formating after ';'
         len(story['title'].split()) if story['title'] else -1,
         story['descendants'] if story['descendants'] > 0 else 0
     ]
