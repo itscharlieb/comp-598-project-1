@@ -1,3 +1,12 @@
+###############################################
+### COMP 598 : Project #1                   ###
+### ---------------------					###
+### Authors:                                ###
+###  + Nicolas Angelard-Gontier - 260532513 ###
+###  + Genevieve Fried - 260564432          ###
+###  + Charlie Bloomfield - 260520615       ###
+###############################################
+
 import parsingHelp
 import datahacker
 

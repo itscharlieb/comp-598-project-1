@@ -94,7 +94,7 @@ path_to_given_data = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
 
 given_data = readData(path_to_given_data)
 # Try with k = 1,2,4,8,11,17,22,34,44, ..., 187,212, ..., 901,1166,1802,2332,3604,4918,9911,19822,39644.
-subsets = multiPartition(given_data, 39644) #creates k subsets of equal size.
+subsets = multiPartition(given_data, 9911) #creates k subsets of equal size.
 
 #new_data = readData(path_to_new_data, True)
 # Try with k = 1,2,3,5,6,7,10,14,15,21,...,105,206,...,1030,1442,1545,2163,3090,3605,4326,7210,10815,21630.
