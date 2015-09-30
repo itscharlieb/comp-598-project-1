@@ -14,6 +14,7 @@ import numpy as np
 Read the data from a CSV file and put it all in an array.
 Assume a title line at the begining of the file.
 @param path - the path to the file to read.
+@param isNew - flag to tell if we are accessing the new data or not. (default is False).
 @return - an array of tuples of the form (url, timedelta, array of features, array of target).
 example of data: [
     (url1, timedelta1, [1,2,3,4,5], [6]),
@@ -21,7 +22,7 @@ example of data: [
     (url3, timedelta3, [4,2,3,5,5], [5])
 ]
 """
-def readData(path):
+def readData(path, isNew=False):
     data = []
     num_features = 0
     with open(path, 'rb') as datafile:
@@ -38,11 +39,22 @@ def readData(path):
                     continue
 
                 url = row[0]                                    # URL is at the 1st column.
-                timedelta = float(row[1])                       # time delta is at the 2nd column.
-                features = map(float,row[2:num_features-1])     # features are from 3rd column to 60th column.
-                # skip features 6,19-20,22-23,25-26,28-29,31-37,51-52,54-55.
-                features = features[:6]+features[7:19]+features[21:22]+features[24:25]+features[27:28]+features[30:31]+features[38:51]+features[53:54]+features[56:]
-                target = [float(row[num_features-1])]           # target feature is at the 61st column.
+                timedelta = None
+                features = []
+                target = []
+
+                if isNew:
+                    #FOR NEW DATA:
+                    features = map(float,row[1:num_features-1])     # features are from 2nd column to 17th column.
+                    target = [float(row[num_features-1])]           # target feature is at the 18th column.
+                else :
+                    #FOR GIVEN DATA:
+                    timedelta = float(row[1])                       # time delta is at the 2nd column.
+                    features = map(float,row[2:num_features-1])     # features are from 3rd column to 60th column.
+                    # skip features 6,19-20,22-23,25-26,28-29,31-37,51-52,54-55.
+                    features = features[:6]+features[7:19]+features[21:22]+features[24:25]+features[27:28]+features[30:31]+features[38:51]+features[53:54]+features[56:]
+                    target = [float(row[num_features-1])]           # target feature is at the 61st column.
+            
 
                 data.append((url, timedelta, features, target)) # add the tuple for this example.
 
@@ -189,7 +201,7 @@ def multiTrain(trainFunc, partitions):
                 a.append(example)
         return a
 
-    weights = []
+    #weights = []
     errors = []
     print "Training %d times..." % len(partitions)
     for i in range(len(partitions)):    # for each subset of data:
@@ -197,8 +209,9 @@ def multiTrain(trainFunc, partitions):
         testingData = partitions[i]     # the testing data is one subset.
         trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
         trainingData = customFlat(trainingData)          # merge all subsets into one big training data.
-        weights.append(train(trainFunc, trainingData).tolist()) # get the weights learned by this training data.
-        errors.append(squaredError(weights[-1], testingData))   # get the error of those weights on the testing data.
+        w = train(trainFunc, trainingData).tolist() # get the weights learned by this training data.
+        #weights.append(w)
+        errors.append(squaredError(w, testingData))   # get the error of those weights on the testing data.
 
     #return averageWeights(weights), crossValidation(errors)
     return None, crossValidation(errors)
