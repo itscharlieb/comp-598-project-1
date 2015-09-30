@@ -153,24 +153,19 @@ def extractFeatures(stories, users):
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
         'user_karma', 'user_published_stories', 'year_user_created',
-        'article_length', 'sentiment', 'num_of_links', 'min_tfidf', 'max_tfidf', 'avg_tfidf', 'freq_of_domain',
+        'article_length', 'sentiment', 'num_of_links', 'avg_tfidf', 'freq_of_domain',
         'score']
     ]
 
     print "extracting data from URLs with API calls..."
     urls = []
-    i = 0
     for s in stories:
-        if i<10:
             urls.append(re.split(",|;", s['url'])[0])
-        else:
-            break
-        i=i+1
-    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token1, urls)
+    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token2, urls)
     print parsedURLFeatures
     """
     parsedURLFeatures = {
-        'url': [article_length, sentiment, #of links, min_tfidf, max_tfidf, avg_tfidf, freq of domain],
+        'url': [article_length, sentiment, #of links, avg_tfidf, freq of domain],
         'url': [...],
         ...
     """
@@ -233,23 +228,19 @@ def single_diffbotapi_call(request, token, list_of_urls):
             #cw_title = count_words_string(ti)
             cw_article = count_words_string(txt)
             sentiment = grab_sentiment_articles(sent)
-            features[url] = [cw_article, sentiment,num_of_links]     #5features
+            features[url] = [cw_article, sentiment, num_of_links]
             list_of_titles.append(ti)        # need for semantic relevance
         except KeyError as e:
             print e
 
-    wf = website_Freq(list_of_urls)
-    
+    update_urls = [url for url in features]
+
+    wf = website_Freq(update_urls)
     bp = basicParse(list_of_titles)
-    d2v = doc2vec(list_of_urls, bp)
+    d2v = doc2vec(update_urls, bp)
     tfidf_r = tfidf(d2v,bp)
-    for url in features:
-        features.append(wf[url])
-        min_tf = take_min(tfidf_r[url])
-        max_tf = take_max(tfidf_r[url])
+    for url,data in features.iteritems():
         avg_tf = take_avg(tfidf_r[url])
-        features[url].append(min_tf)
-        features[url].append(max_tf)
         features[url].append(avg_tf)   
         features[url].append(wf[url])
     return features

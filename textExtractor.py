@@ -26,11 +26,7 @@ def diffbot_api(request, token, url):
 
 	params= {'token':token, 'url' : url, 'fields': 'sentiment,links'}
 	json_r = requests.get(request, params=params).json()
-<<<<<<< HEAD
 	if 'objects' in json_r:
-=======
-	if json_r['objects']:
->>>>>>> c2f345cea3c8dc38146361231bb33409e3d58928
 		objs = json_r['objects']
 		json_a = objs[0]
 
@@ -41,13 +37,5 @@ def diffbot_api(request, token, url):
 
 		num_of_links = len(links)
 		return title, text, sentiment, num_of_links
-<<<<<<< HEAD
 	else:
 		raise KeyError("no objects in the returned API call for: %s" % url)
-	
-=======
-	else: 
-		return 0,0,0,0
-
-
->>>>>>> c2f345cea3c8dc38146361231bb33409e3d58928
