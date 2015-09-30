@@ -112,31 +112,20 @@ def storyFeatures(story):
     return features
 
 """
-@param story url
-@return list of features of the form 
-[
-    feat1,
-    feat2,
-    feat3
-]
-"""
-def urlFeatures(url):
-
-
-"""
 Grabs features for a given story (in json format)
 @param story - the dictionary object that represents a story.
 @param users - dictionary of users
 @return - an array of features for the given story.
 """
 def grabFeatures(story, users):
-    author = story['by']
-    if author not in users:
-        raise ValueError("Could not find information on author of this story: "+story['url'])
-
     features = []
     features.extend(storyFeatures(story))
-    features.extend(authorFeatures(users[author]))
+    author = story['by']
+    if author not in users:
+        print "Could not find information on author of this story: "+story['url']
+        features.extend([0,0,0])
+    else :
+        features.extend(authorFeatures(users[author]))
     return features
 
 
@@ -178,7 +167,8 @@ def extractFeatures(stories, users):
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
-            featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
+            #featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
+            featureList.extend([0,0,0,0,0,0,0])
             featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
