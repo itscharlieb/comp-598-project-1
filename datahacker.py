@@ -148,11 +148,11 @@ example of features: [
 """
 def extractFeatures(stories, users):
     features = [
-        ['url', 'title_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
+        ['url', 'tile_length', 'num_of_comments', 'year_published', 'month_published', 'day_published',
         'hour_published', 'published_on_monday', 'published_on_tuesday','published_on_wednesday',
         'published_on_thursday','published_on_friday','published_on_saturday','published_on_sunday',
         'user_karma', 'user_published_stories', 'year_user_created',
-        'article_length', 'sentiment', 'num_of_links', 'frequency_of_domain',
+        'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7',
         'score']
     ]
 
@@ -160,11 +160,11 @@ def extractFeatures(stories, users):
     urls = []
     for s in stories:
         urls.append(re.split(",|;", s['url'])[0])
-    parsedURLFeatures = single_diffbotapi_call(request, token, urls)
+    parsedURLFeatures = {}# single_diffbotapi_call(request, token, urls)
     """
     parsedURLFeatures = {
-        'url': [article_length, sentiment, #of links, freq of domain],
-        'url': [...],
+        'url': [f1, f2, f3, ...],
+        'url': [f1, f2, f3, ...],
         ...
     }
     """
@@ -173,10 +173,17 @@ def extractFeatures(stories, users):
     for story in stories:
         try:
             featureList = grabFeatures(story, users)
+
+            print story['url'], "hello"
             if story['url'] and parsedURLFeatures[story['url']]:
                 featureList.extend(parsedURLFeatures[story['url']])
+                print story['url'], "bonjour"
             else:
-                featureList.extend([0,0,0,0])
+                featureList.extend([0,0,0,0,0,0,0])
+
+            #featureList.extend(parsedURLFeatures[story['url']] if parsedURLFeatures[story['url']] else [0,0,0,0,0,0,0])
+            featureList.extend([0,0,0,0,0,0,0])
+
             featureList.append(story['score']) #append the score at the end.
             features.append(featureList)
         except ValueError as e:
@@ -205,8 +212,7 @@ returns count of words in article or title
 @param article text extracted from diffbot api
 """
 def count_words_string(text):
-    tokens = []
-    tokens = word_tokenize(text)
+    tokens = text.split()
     return len(tokens)
 
 """
@@ -217,22 +223,17 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
-#single_diffbotapi_call(request, token, list_of_url)
-##NOTE listofurls needs to be comprised from hackernewsapi
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
-    # count number of words in text
-    #sentiment analysis
     for url in list_of_urls:
         ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
-        #cw_title = count_words_string(ti)
         cw_article = count_words_string(txt)
         sentiment = grab_sentiment_articles(sent)
         features[url] = [cw_article, sentiment,num_of_links]     #5features
         list_of_titles.append(ti)        # need for semantic relevance
     wf = website_Freq(list_of_urls)
-    """
+    
     bp = basicParse(list_of_titles)
     d2v = doc2vec(list_of_urls, bp)
     tfidf_r = tfidf(d2v,bp)
@@ -243,13 +244,10 @@ def single_diffbotapi_call(request, token, list_of_urls):
         avg_tf = take_avg(tfidf_r[url])
         features.append(min_tf)
         features.append(max_tf)
-        features.append(avg_tf)
-    """
-    for url,data in features.iteritems():
-        if wf[url]:
-            features[url].append(wf[url])
+        features.append(avg_tf)    
+   #     if wf[url]:
+        features[url].append(wf[url])
     return features  
-
 
 
 ################## END OF FEATURES LIST ##################

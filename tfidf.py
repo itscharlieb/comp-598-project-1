@@ -4,7 +4,6 @@ from collections import defaultdict
 from pprint import pprint 
 
 
-
  
 """
 returns a list of articles that has common words removed and is tokenized; 
@@ -14,7 +13,6 @@ def basicParse(documents):
 	#remove common words and tokenize
 	stoplist = set('for a of the and to in'.split())
 	texts = [[word for word in document.lower().split() if word not in stoplist] for document in documents]
-
 	return texts
 
 """
@@ -46,14 +44,15 @@ returns a list of tf-idf weights for each of the words in the title as they're r
 @params doc_bow: bag of word vector for specific title
 @params documents: list of titles to train our model
 """
-def tfidf(doc2vec_dict, parsedDocuments):	
-	#corpus = listoftitles
+def tfidf(doc2vec_dict, texts):	
 	tfidf_weights_dict = {}
-	corpus_tfidf = models.TfidfModel(parsedDocuments)	##initializing a model with docum
+	dictionary = corpora.Dictionary(texts)
+	corpus = [dictionary.doc2bow(text) for text in texts]
+	corpus_tfidf = models.TfidfModel(corpus)	##initializing a model with docum
 	
 	for url,doc_bow in doc2vec_dict.iteritems():
-			tfidf_weight = corpus_tfidf[doc_bow]
-			tfidf_weights_dict[url] = tfidf_weight
+		tfidf_weight = corpus_tfidf[doc_bow]
+		tfidf_weights_dict[url] = tfidf_weight
 	return tfidf_weights_dict
 
 
