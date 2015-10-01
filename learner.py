@@ -256,7 +256,11 @@ def ols(trainingData):
     return W
 
 """
-returns the set of weights that define the gradient descent estimate over the parameter data
+Calculate the derivative of Err(w) with respect to w.
+@param wVec - the current weight vector.
+@param xVec - the X matrix of features.
+@param yVec - the Y matrix of targets.
+@return - the derivative of the error of the given set of weights.
 """
 def ErrW(wVec, xVec, yVec):
 
@@ -268,39 +272,38 @@ def ErrW(wVec, xVec, yVec):
 
 
 """
+Calculate the best possible coefficients for some features and their targets.
+We're using Gradient Descent and Robbins-Monroe conditions on how to decrease alpha.
+@param trainingData - the data that we want to train on, of the form: [(URL, timedelta, [1,2,3], [4]), (...), ...]
+@return - the coefficient matrix corresponding to the line estimate.
 """
 def gradientDescent(trainingData):
 
-    ## constant values
-    #alpha = 0.000000000000000000001
+    # constant values
     alpha = 1
     epsilon = 0.0001
     X,Y = generateMatrixes(trainingData)
-    lenM = X.shape[1] # lenM = #of features
+    num_of_features = X.shape[1]
 
-   # initial construction of gradient descent alg
-    tmp = [[random.random()] for x in range(lenM)]
+    # initial construction of gradient descent alg (step 1)
+    tmp = [[random.random()] for x in range(num_of_features)]
     wCrt = np.matrix(tmp)
     aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
     wNext = wCrt - aErr
-    alpha = 1 / (alpha+1)
+    alpha = 1 / (alpha+1) #decrease alpha after step 1
 
-    ## gradient descent
+    # gradient descent
     again = True
     while again:
-        #if reduce(lambda x,y: x and y , np.absolute(aErr) < epsilon):
         if np.absolute(np.linalg.norm(aErr)) < epsilon:
-            #print np.absolute(aErr)
-            #print np.absolute(np.linalg.norm(aErr))
             again = False
             break
         else:
-            #print np.absolute(aErr)
-            #print np.absolute(np.linalg.norm(aErr))
+            # gradient descent step
             wCrt = wNext
             aErr = np.multiply(alpha, ErrW(wCrt, X, Y))
             wNext = wCrt - aErr
-            alpha = 1 / (alpha+1)   
+            alpha = 1 / (alpha+1) #decrease alpha after this step.  
 
     return wNext
 

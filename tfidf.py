@@ -1,9 +1,4 @@
-import logging, json
-from gensim import corpora, models, similarities
-from collections import defaultdict
-from pprint import pprint 
-
-
+from gensim import corpora, models
  
 """
 returns a list of articles that has common words removed and is tokenized; 
@@ -16,13 +11,11 @@ def basicParse(documents):
 	return texts
 
 """
-
-	the function doc2bow counts the number of occurences of each distinct word in a string
-	in a document (an array of strings which could range from sentences to entire corpuses). 
-	Here we're creating a sparse vector of number of times the distinct words in data appear in 
-	parsedDoc, our document of strings defining a certain type of data (e.g. title) in our articles
-	from hackernews
-
+the function doc2bow counts the number of occurences of each distinct word in a string
+in a document (an array of strings which could range from sentences to entire corpuses). 
+Here we're creating a sparse vector of number of times the distinct words in data appear in 
+parsedDoc, our document of strings defining a certain type of data (e.g. title) in our articles
+from hackernews
 @params title: single title
 @params parsedDocument: documents that have been parsed by basicParse
 """

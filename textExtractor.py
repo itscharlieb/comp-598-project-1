@@ -11,14 +11,6 @@
 import requests, json
 
 """
-# api arguments
-diffbot_token = "b78400cc0f6795ded5fa3d980d1348c6"
-diffbot_tokenN = "09e512545e45166138161870d3f9a541"
-diffbot_tokenCB = ""
-
-request = "http://api.diffbot.com/v3/article"
-
-
 @params url: list of urls to grab data from
 types: text, title, html, author,  discussion
 """

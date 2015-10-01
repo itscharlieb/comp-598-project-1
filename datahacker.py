@@ -16,21 +16,18 @@ This file is responible for:
 """
 
 
-import json, csv, string, datetime, re
+import json, csv, datetime, re
 from collections import defaultdict
-from nltk.tokenize import word_tokenize, sent_tokenize
 import textExtractor as TE
 from tfidf import *
-from urlparse import urlparse
 from urlparse import urljoin
 
 # api arguments
 request = "http://api.diffbot.com/v3/article"
-diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6"     #Genevieve's      #10,000 k articles each 
-diffbot_token2 = "09e512545e45166138161870d3f9a541"     #Nico's
-diffbot_token3 = "3a738834f4767fac91f317689b7aec21"
-
-diffbotRequest = "http://api.diffbot.com/v3/article"
+# 1 token = 10,000 k requests.
+diffbot_token1 = "b78400cc0f6795ded5fa3d980d1348c6" #Genevieve's
+diffbot_token2 = "09e512545e45166138161870d3f9a541" #Nico's
+diffbot_token3 = "3a738834f4767fac91f317689b7aec21" #Charlie's
 
 #necessary attributes to consider an item as a valid story
 requiredStoryAttributes = [
@@ -46,20 +43,18 @@ requiredStoryAttributes = [
 
 
 """
+Filter valid stories. Validity is determined by testing the item for containing a set of features.
 @param list of hacker-news items
 @return list of hacker-news valid stories
-
-Validity is determined by testing the item for containing a set of features.
 """
 def filterStories(items):
     return [story for story in items if all(map(lambda attribute: attribute in story and story[attribute]!='', requiredStoryAttributes))]
 
 
-def weekday(time):
-    return False
-
 """
-@param unixtime object (@see https://en.wikipedia.org/wiki/Unix_time)
+Parse a given unix time object to readable time elements.
+@param unixTime - unixtime object (@see https://en.wikipedia.org/wiki/Unix_time)
+@return - an array of comprehensive time features: [year, month, day, hour, ...]
 """
 def parseTime(unixTime):
     time = datetime.datetime.fromtimestamp(int(unixTime))
@@ -88,13 +83,18 @@ def parseTime(unixTime):
     ]
 
 """
+Parse a given unix time object to the corresponding year.
+@param unixTime - unixtime object (@see https://en.wikipedia.org/wiki/Unix_time)
+@return - the year of the given time.
 """
 def parseYear(unixTime):
     return datetime.datetime.fromtimestamp(int(unixTime)).year
 
 
 """
-features: user karma, number of published stories, year user created
+Create a set of features for a given author.
+@param author - the dictionary representing a hacker-news author.
+@return - an array of features: [user karma, number of published stories, year user created]
 """
 def authorFeatures(author):
     return [
@@ -105,7 +105,10 @@ def authorFeatures(author):
 
 
 """
-features: URL, #of comments, year, month, day, hour, isMon, isTue, isWed, isThu, isFri, isSat, isSun
+Create a set of features for a given story.
+@param story - the dictionary representing a hacker-news story.
+@return - an array of features: [URL, #of words in the title, #of comments,
+    year, month, day, hour, isMon, isTue, isWed, isThu, isFri, isSat, isSun]
 """
 def storyFeatures(story):
     features = [
@@ -118,13 +121,13 @@ def storyFeatures(story):
 
 
 """
-Grabs features for a given story (in json format)
+Calls a function to grab features for a given story.
+Calls another function to grab the features of the story author.
 @param story - the dictionary object that represents a story.
 @param users - dictionary of users
-@return - an array of features for the given story.
+@return - an array of features for the given story and it's user.
 
 """
-
 def grabFeatures(story, users):
     features = []
     features.extend(storyFeatures(story))
@@ -137,7 +140,9 @@ def grabFeatures(story, users):
 
 
 """
-Goes through the 100,000 items, and grab features for each of them.
+Goes through the all stories, and grab features for each of them.
+@param stories - set of stories.
+@param users - set of users.
 @return - a 2D array with line = array of feature values for 1 story.
 example of features: [
     [url, f1, f2, ..., fm], <-- title line
@@ -161,31 +166,32 @@ def extractFeatures(stories, users):
     urls = []
     i=0
     for s in stories:
-        if i<2000 :
+        if i<2000 : #only do 2K API calls
             urls.append(re.split(",|;", s['url'])[0])
             i=i+1
         else:
             break
-    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token2, urls)
-    print parsedURLFeatures
+    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token2, urls) # get the features for the 2K urls.
+    print parsedURLFeatures # dictionary of key (url), value (set of features).
     """
     parsedURLFeatures = {
         'url': [article_length, sentiment, #of links, avg_tfidf, freq of domain],
         'url': [...],
         ...
+    }
     """
     print "done with the API calls."
 
-    for story in stories:
+    for story in stories: #for each story, try to get all features and append to 'features' 2D list.
         try:
-            featureList = grabFeatures(story, users)
+            featureList = grabFeatures(story, users) # grab features from hacker-news api
             if len(parsedURLFeatures)!=0 and story['url'] in parsedURLFeatures:
-                featureList.extend(parsedURLFeatures[story['url']])
+                featureList.extend(parsedURLFeatures[story['url']]) # if possible, grab features from diffbot API.
             else:
                 print "skip this story: %s" % story['url']
                 continue
-            featureList.append(story['score']) #append the score at the end.
-            features.append(featureList)
+            featureList.append(story['score']) # append the score at the end.
+            features.append(featureList) # append the list of features to the 2D list that will be written in the csv.
         except ValueError as e:
             print "skip this story: %s" % story['url']
             print e
@@ -224,6 +230,18 @@ note: sentiment analysis ranges from -1 (absolutely negative) to 1 (absolutely p
 def grab_sentiment_articles(sentiment):
     return sentiment
 
+"""
+Creates the features from an API call.
+@param request - the request url for the API.
+@param token - the token id for the API.
+@param list_of_urls - list of urls we want features for.
+@return - a dictionary with key (url) and value (array of features).
+ex of features: {
+    'url': [article_length, sentiment, #of links, avg_tfidf, freq of domain],
+    'url': [...],
+    ...
+}
+"""
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
@@ -232,11 +250,10 @@ def single_diffbotapi_call(request, token, list_of_urls):
         print i
         try:
             ti,txt,sent, num_of_links = TE.diffbot_api(request, token, url)
-            #cw_title = count_words_string(ti)
             cw_article = count_words_string(txt)
             sentiment = grab_sentiment_articles(sent)
             features[url] = [cw_article, sentiment, num_of_links]
-            list_of_titles.append(ti)        # need for semantic relevance
+            list_of_titles.append(ti)
         except KeyError as e:
             print e
         i=i+1
@@ -266,6 +283,11 @@ def createFile(data):
             writer.writerow(row)
 
 
+"""
+Main function of this file.
+Puts the hacker-news items into dictionaries, and grab features for all stories.
+Eventually, call the method responsible for creating the final csv data file.
+"""
 def process():
     #build user dictionary
     userFile = open("data/cleanedusers.json")

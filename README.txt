@@ -6,7 +6,14 @@ Structure:
 		and to grab 2 types of data: stories and users. It creates json files in a folder called "data".
 	- datahacker.py:
 		This file is used to parse the json result we got from the HackerNews API, and extract features from each story.
-		In this file, we also create the final CSV file with the new data and all the features.
+		In this file, we also grab features from the diffbot API that parses our URLS.
+		Eventually, we create the final CSV file with the new data and all the features.
+	- testExtractor.py:
+		This file is the one that calls the diffbot API and return usefull information that will 
+		be used by the caller: datahacker.py
+	- tfidf.py:
+		This file provides the functions that allow us to compute tf-idf weighting.
+		It's parsing data, making bag of word vectors, and then training our tfidf model and extracting those tifidf weights
 	- learner.py:
 		This is where we implemented the regression algorithms.
 		First, we have a function that reads the data from a given CSV file and create an array of tupple (each tuple being information regarding one example).
