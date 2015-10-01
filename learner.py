@@ -55,7 +55,6 @@ def readData(path, isNew=False):
                     features = features[:6]+features[7:19]+features[21:22]+features[24:25]+features[27:28]+features[30:31]+features[38:51]+features[53:54]+features[56:]
                     target = [float(row[num_features-1])]           # target feature is at the 61st column.
             
-
                 data.append((url, timedelta, features, target)) # add the tuple for this example.
 
             example=example+1 # increment example counter
@@ -201,7 +200,7 @@ def multiTrain(trainFunc, partitions):
                 a.append(example)
         return a
 
-    #weights = []
+    weights = []
     errors = []
     print "Training %d times..." % len(partitions)
     for i in range(len(partitions)):    # for each subset of data:
@@ -210,11 +209,11 @@ def multiTrain(trainFunc, partitions):
         trainingData = partitions[:i] + partitions[i+1:] # the training data is all the other subsets.
         trainingData = customFlat(trainingData)          # merge all subsets into one big training data.
         w = train(trainFunc, trainingData).tolist() # get the weights learned by this training data.
-        #weights.append(w)
+        weights.append(w)
         errors.append(squaredError(w, testingData))   # get the error of those weights on the testing data.
 
-    #return averageWeights(weights), crossValidation(errors)
-    return None, crossValidation(errors)
+    return averageWeights(weights), crossValidation(errors)
+    #return None, crossValidation(errors)
 
 
 
@@ -267,6 +266,9 @@ def ErrW(wVec, xVec, yVec):
     p4 = p2-p3
     return np.multiply(2.0, p4)
 
+
+"""
+"""
 def gradientDescent(trainingData):
 
     ## constant values

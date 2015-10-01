@@ -7,9 +7,6 @@ Structure:
 	- datahacker.py:
 		This file is used to parse the json result we got from the HackerNews API, and extract features from each story.
 		In this file, we also create the final CSV file with the new data and all the features.
-	- urlhacker.py:
-		This is where we tried to parse URLs and get more features from the HTML content,
-		but our Alchemy API account wasn't sufficient to do 21,000 queries.
 	- learner.py:
 		This is where we implemented the regression algorithms.
 		First, we have a function that reads the data from a given CSV file and create an array of tupple (each tuple being information regarding one example).
@@ -32,11 +29,20 @@ Python
 -------------------------------------
 To install required python libraries:
 -------------------------------------
->> sudo pip install csv, json, numpy
+>> sudo pip install csv, json, numpy, nltk, gensim
 
 -------------------
 To run the program:
 -------------------
 >> python project1.py
 
+---------------------------------
+To download the Hacker News data:
+---------------------------------
+>> python hacker.py
+
+-----------------------
+To create the data set:
+-----------------------
+>> python datahacker.py
 

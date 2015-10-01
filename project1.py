@@ -10,7 +10,7 @@
 ###############################################
 
 """
-used database: https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity#
+used database: https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity
 
 K. Fernandes, P. Vinagre and P. Cortez. A Proactive Intelligent Decision
     Support System for Predicting the Popularity of Online News. Proceedings
@@ -85,62 +85,39 @@ Attribute Information:
 """
 
 from learner import *
-import datetime
-
-start = datetime.datetime.now()
 
 path_to_given_data = "./OnlineNewsPopularity/OnlineNewsPopularity.csv"
-#path_to_new_data = "./data/stories.csv"
+path_to_new_data = "./data/stories.csv"
 
+print "==================================="
+print "CLOSED FORM SOLUTION ON GIVEN DATA:"
+print "==================================="
 given_data = readData(path_to_given_data)
 # Try with k = 1,2,4,8,11,17,22,34,44, ..., 187,212, ..., 901,1166,1802,2332,3604,4918,9911,19822,39644.
-subsets = multiPartition(given_data, 9911) #creates k subsets of equal size.
-
-#new_data = readData(path_to_new_data, True)
-# Try with k = 1,2,3,5,6,7,10,14,15,21,...,105,206,...,1030,1442,1545,2163,3090,3605,4326,7210,10815,21630.
-#new_subsets = multiPartition(new_data, 21630) #creates k subsets of equal size.
+subsets = multiPartition(given_data, 3) #creates k subsets of equal size.
 
 print "There are %d subsets." % len(subsets)
 print "Each subset has %d examples." % len(subsets[0])
-#averageWeights, averageError = multiTrain(ols, new_subsets) # k-fold cross validation
 averageWeights, averageError = multiTrain(ols, subsets) # k-fold cross validation
+print "average Weights on our data"
+print averageWeights
+print "error on our data"
 print averageError
 
-end = datetime.datetime.now()
-print end-start
+print "================================="
+print "CLOSED FORM SOLUTION ON OUR DATA:"
+print "================================="
+
+new_data = readData(path_to_new_data, True)
+# Try with k = 1,2,3,5,6,7,10,14,15,21,...,105,206,...,1030,1442,1545,2163,3090,3605,4326,7210,10815,21630.
+new_subsets = multiPartition(new_data, 3) #creates k subsets of equal size.
+
+print "There are %d subsets." % len(new_subsets)
+print "Each subset has %d examples." % len(new_subsets[0])
+averageWeights, averageError = multiTrain(ols, new_subsets) # k-fold cross validation
+print "average Weights on our data"
+print averageWeights
+print "error on our data"
+print averageError
 
 
-"""
-print "100'%' training:"
-# take all the data as training data.
-training_data, testing_data = partition(data, 1)
-print "length of training: %d/%d" % (len(training_data), len(data))
-print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(weightSoln, training_data)
-#W = train(gradientDescent, training_data)
-print W
-"""
-
-"""
-print "75'%' as training, 25'%' as test:"
-training_data, testing_data = partition(data, 0.75)
-print "length of training: %d/%d" % (len(training_data), len(data))
-print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(weightSoln, training_data)
-#W = train(gradientDescent, training_data)
-#print W
-error = squaredError(W, testing_data)
-print "error: %e" % error
-"""
-
-"""
-print "50'%' as training, 50'%' as test:"
-training_data, testing_data = partition(data, 0.50)
-print "length of training: %d/%d" % (len(training_data), len(data))
-print "length of testing: %d/%d" % (len(testing_data), len(data))
-W = train(weightSoln, training_data)
-#W = train(gradientDescent, training_data)
-#print W
-error = squaredError(W, testing_data)
-print "error: %e" % error
-"""
