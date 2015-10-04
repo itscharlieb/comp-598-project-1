@@ -1,9 +1,5 @@
 url,title_length,num_of_comments,year_published,month_published,day_published,hour_published,published_on_monday,published_on_tuesday,published_on_wednesday,published_on_thursday,published_on_friday,published_on_saturday,published_on_sunday,user_karma,user_published_stories,year_user_created,article_length,sentiment,num_of_links,avg_tfidf,freq_of_domain,score
-http://ycombinator.com,2,15,2006,10,9,14,1,0,0,0,0,0,0,155049,15508,2006,199,-0.25957,53,0.5,0.125,61
-http://www.nytimes.com/2006/09/10/business/yourmoney/10stra.html?ex=1315540800&en=6889d6d8b8f28c5a&ei=5090&partner=rssuserland&emc=rss,7,0,2006,10,10,2,0,1,0,0,0,0,0,52,12,2006,942,-0.26541,86,1.0,0.125,1
-http://avc.blogs.com/a_vc/2006/10/search_by_salar.html,4,1,2006,10,9,16,1,0,0,0,0,0,0,155049,15508,2006,116,0.08476,17,0.5,0.125,8
-http://www.paulgraham.com/startuplessons.html,7,0,2006,10,9,15,1,0,0,0,0,0,0,98,19,2006,4824,-0.06962,12,0.5773502691896257,0.125,5
-http://www.techcrunch.com/2006/10/09/broadcast-photos-to-cable-tv/,6,0,2006,10,9,15,1,0,0,0,0,0,0,30,5,2006,352,-0.02275,69,0.3333333333333333,0.125,3
-http://www.weekendr.com/,6,0,2006,10,9,15,1,0,0,0,0,0,0,13,1,2006,272,0.16225,67,0.5,0.125,4
-http://www.techcrunch.com/2006/10/09/google-has-acquired-youtube/,5,1,2006,10,9,21,1,0,0,0,0,0,0,12339,1333,2006,586,-0.16258,106,0.3333333333333333,0.125,6
-http://scratchtop.com,6,0,2006,10,10,11,0,1,0,0,0,0,0,14,1,2006,6405,-0.07622,35,0.5773502691896257,0.125,5
+http://ycombinator.com,2,15,2006,10,9,14,1,0,0,0,0,0,0,155049,15508,2006,199,-0.25957,53,0.3333333333333333,0.25,61
+http://www.nytimes.com/2006/09/10/business/yourmoney/10stra.html?ex=1315540800&en=6889d6d8b8f28c5a&ei=5090&partner=rssuserland&emc=rss,7,0,2006,10,10,2,0,1,0,0,0,0,0,52,12,2006,942,-0.26541,86,0.5773502691896258,0.25,1
+http://avc.blogs.com/a_vc/2006/10/search_by_salar.html,4,1,2006,10,9,16,1,0,0,0,0,0,0,155049,15508,2006,116,0.08476,22,0.3333333333333333,0.25,8
+http://www.paulgraham.com/startuplessons.html,7,0,2006,10,9,15,1,0,0,0,0,0,0,98,19,2006,4824,-0.06962,12,0.5,0.25,5

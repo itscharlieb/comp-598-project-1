@@ -4,11 +4,15 @@ from gensim import corpora, models
 returns a list of articles that has common words removed and is tokenized; 
 @param documents: list of titles
 """
-def basicParse(documents):
+def basicParse(urls, documents):
+	url_title = {}
 	#remove common words and tokenize
 	stoplist = set('for a of the and to in'.split())
 	texts = [[word for word in document.lower().split() if word not in stoplist] for document in documents]
-	return texts
+	url_title = dict(zip(urls, texts))
+	
+	#returns dictionary of urls: parsed titles of that url
+	return url_title
 
 """
 the function doc2bow counts the number of occurences of each distinct word in a string
@@ -20,16 +24,19 @@ from hackernews
 @params parsedDocument: documents that have been parsed by basicParse
 """
 
-def doc2vec(urls,parsedDocuments):
+def doc2vec(parsedUrlDocuments):
 	doc2vec_dict = {}
-	dictionary = corpora.Dictionary(parsedDocuments)
-	count = 0
-	for title in parsedDocuments:
+	pd = []
+	for k,v in parsedUrlDocuments.iteritems():
+		pd.append(v)
+
+	dictionary = corpora.Dictionary(pd)
+	for url, title in parsedUrlDocuments.iteritems():
 		sp = " "
 		title = sp.join(title)
 		doc_bow = dictionary.doc2bow(title.lower().split())			# bag of words vector
-		doc2vec_dict[urls[count]] = doc_bow
-		count=count+1
+		doc2vec_dict[url] = doc_bow
+	
 	return doc2vec_dict
 
 """
@@ -37,7 +44,10 @@ returns a list of tf-idf weights for each of the words in the title as they're r
 @params doc_bow: bag of word vector for specific title
 @params documents: list of titles to train our model
 """
-def tfidf(doc2vec_dict, texts):	
+def tfidf(doc2vec_dict, bp):	
+	texts = []
+	for k,v in bp.iteritems():
+		texts.append(v)
 	tfidf_weights_dict = {}
 	dictionary = corpora.Dictionary(texts)
 	corpus = [dictionary.doc2bow(text) for text in texts]

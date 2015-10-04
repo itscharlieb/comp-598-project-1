@@ -166,12 +166,12 @@ def extractFeatures(stories, users):
     urls = []
     i=0
     for s in stories:
-        if i<2000 : #only do 2K API calls
+        if i<5 : #only do 2K API calls
             urls.append(re.split(",|;", s['url'])[0])
             i=i+1
         else:
             break
-    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token2, urls) # get the features for the 2K urls.
+    parsedURLFeatures = single_diffbotapi_call(request, diffbot_token3, urls) # get the features for the 2K urls.
     print parsedURLFeatures # dictionary of key (url), value (set of features).
     """
     parsedURLFeatures = {
@@ -245,6 +245,8 @@ ex of features: {
 def single_diffbotapi_call(request, token, list_of_urls):
     features = {}
     list_of_titles=[]
+    url_title = {}
+
     i=0
     for url in list_of_urls:
         print i
@@ -254,6 +256,8 @@ def single_diffbotapi_call(request, token, list_of_urls):
             sentiment = grab_sentiment_articles(sent)
             features[url] = [cw_article, sentiment, num_of_links]
             list_of_titles.append(ti)
+            url_title[url] = ti
+
         except KeyError as e:
             print e
         i=i+1
@@ -261,8 +265,8 @@ def single_diffbotapi_call(request, token, list_of_urls):
     update_urls = [url for url in features]
 
     wf = website_Freq(update_urls)
-    bp = basicParse(list_of_titles)
-    d2v = doc2vec(update_urls, bp)
+    bp = basicParse(update_urls,list_of_titles)
+    d2v = doc2vec(bp)
     tfidf_r = tfidf(d2v,bp)
     for url,data in features.iteritems():
         avg_tf = take_avg(tfidf_r[url])
